@@ -5,10 +5,10 @@ var INPUT = path.resolve(__dirname, "src");
 var OUTPUT = path.resolve(__dirname, "bin");
  
 var config = {
-  entry: INPUT + "/main.jsx",    <------- just one input file for now
+  entry: INPUT + "/main.jsx",    
   output: {
     path: OUTPUT,
-    filename: "main.js"        <------- index.html includes this .js file
+    filename: "script/main.js"        
   },
   module: {
     loaders: [{
