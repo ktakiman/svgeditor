@@ -19,6 +19,11 @@ import { SvgEditor } from './components.jsx';
             sizeIndex: index
         },
         modes: [....],   // used as stack
+        keyMapping: {
+            'universal': { key1: action1, key2: action2 },
+            mode1: { key1: action1, key2: action2 },
+            mode2: { key1: action1, key2: action2 },
+        },
         shapes: {
             selected: index
             data: [
@@ -39,6 +44,22 @@ const initialState = {
     grid: { 
         sizePresets: [0, 5, 10, 20, 40],
         sizeIndex: 0
+    },
+    keyMapping: {
+        'universal': {
+            'g': actions.GRID_CYCLE_SIZE,
+            'G': actions.GRID_CYCLE_SIZE_RV,
+            'Escape': actions.MODE_POP,
+            'ctrl-[': actions.MODE_POP,
+        },
+        [modes.TOP_DEFAULT]: {
+            ' ': actions.MODE_PUSH_PATH_SELECT_SEGMENT,  // temporary, depends on a currently selected shape type
+            'a': actions.PATHS_ADD,
+            'j': actions.PATHS_CYCLE_SELECTION,
+            'k': actions.PATHS_CYCLE_SELECTION_RV,
+        },
+        [modes.PATH_SELECT_SEGMENT]: {
+        }
     },
     modes: [ modes.TOP_DEFAULT ],
     shapes: {
@@ -62,33 +83,19 @@ const store = Redux.createStore(mainReducer, initialState, middleware);
 
 //----------------------------------------------------------------------------------------------------
 document.addEventListener('keydown', event => {
-    switch (event.key)
-    {
-        case 'a':
-            store.dispatch({type: actions.PATHS_ADD});
-            break;
-        case 'g':
-            store.dispatch({type: actions.GRID_CYCLE_SIZE});
-            break;
-        case 'G':
-            store.dispatch({type: actions.GRID_CYCLE_SIZE_RV});
-            break;
-        case 'k':
-            store.dispatch({type: actions.PATHS_CYCLE_SELECTION_RV});
-            break;
-        case 'j':
-            store.dispatch({type: actions.PATHS_CYCLE_SELECTION});
-            break;
-        case ' ':
-            store.dispatch({type: actions.MODE_PUSH_PATH_SELECT_SEGMENT});
-            break;
-        case 'Escape':
-            store.dispatch({type: actions.MODE_POP});
-            break;
-        default:
-            break;
-    }
+    const key = (event.ctrlKey ? 'ctrl-' : '') + event.key;
+    const state = store.getState();
 
+    // check universal mapping first
+    let action = state.keyMapping.universal[key];
+
+    if (!action) {
+        const mode = state.modes[state.modes.length - 1];
+        action = state.keyMapping[mode][key];
+    }
+    
+    if (action) { store.dispatch({type: action}); }
+    
     console.log('key = ' + event.key);
 });
 

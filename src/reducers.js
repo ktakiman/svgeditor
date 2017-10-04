@@ -63,13 +63,14 @@ export const mainReducer = (state, action) => {
         };
     }
     else if (action.type === actions.MODE_POP) {
-        return {
-            ...state,
-            modes: [...state.modes.slice(0, state.modes.length - 1)]
-        };
+        if (state.modes.length > 1) {
+            return {
+                ...state,
+                modes: [...state.modes.slice(0, state.modes.length - 1)]
+            };
+        }
     }
-    else {
-        return state;
-    }
+
+    return state;
 };
 
