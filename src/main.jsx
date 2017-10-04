@@ -5,7 +5,8 @@ import * as Redux from 'redux';
 import * as ReactRedux from 'react-redux';
 
 import { mainReducer } from './reducers.js';
-import { actions } from './actions.js';
+import { actions, modes } from './consts.js';
+
 
 import { SvgEditor } from './components.jsx';
 
@@ -13,17 +14,17 @@ import { SvgEditor } from './components.jsx';
     /*  
     {
         containerSize: [w, y],
-        edit: {
-            grid: {
-                sizePresets: [0, size1, size2, ....],
-                sizeIndex: index
-            },
+        grid: {
+            sizePresets: [0, size1, size2, ....],
+            sizeIndex: index
         },
+        modes: [....],   // used as stack
         shapes: {
             selected: index
             data: [
                 { 
                     type: 'path', // etc
+                    selectedSegment: index,
                     segments: [
                         ['M,L,etc...', n, n, ...]
                     ]
@@ -35,15 +36,14 @@ import { SvgEditor } from './components.jsx';
 
 const initialState = { 
     containerSize: [800, 500], 
+    grid: { 
+        sizePresets: [0, 5, 10, 20, 40],
+        sizeIndex: 0
+    },
+    modes: [ modes.TOP_DEFAULT ],
     shapes: {
         data: [],
     },
-    edit: {
-        grid: { 
-            sizePresets: [0, 5, 10, 20, 40],
-            sizeIndex: 0
-        }
-    }
 };
 
 
@@ -79,11 +79,17 @@ document.addEventListener('keydown', event => {
         case 'j':
             store.dispatch({type: actions.PATHS_CYCLE_SELECTION});
             break;
+        case ' ':
+            store.dispatch({type: actions.MODE_PUSH_PATH_SELECT_SEGMENT});
+            break;
+        case 'Escape':
+            store.dispatch({type: actions.MODE_POP});
+            break;
         default:
             break;
     }
 
-    console.log(event.key);
+    console.log('key = ' + event.key);
 });
 
 //----------------------------------------------------------------------------------------------------

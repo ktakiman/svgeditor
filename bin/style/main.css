@@ -2,6 +2,9 @@ svg { background-color: lightgray; }
 path { stroke: navy; }
 path.selected { storoke: navy; stroke-width: 3; }
 
+circle.point { stroke: none; fill: black; }
+
 .grid { stroke: white; stroke-dasharray: 1, 1}
 
 .button-group { margin-top: 1em; }
+.button-group h3 { display: inline-block; margin-left: 20px; }

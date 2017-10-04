@@ -1,4 +1,4 @@
-import { actions } from './actions.js';
+import { actions, modes } from './consts.js';
 
 let gAddPath = 1;
 
@@ -53,34 +53,23 @@ export const mainReducer = (state, action) => {
     else if (action.type.indexOf("GRID") == 0) {
         return {
             ...state,
-            edit: { 
-                ...state.edit,
-                grid: gridReducer(state.edit.grid, action)
-            }
+            grid: gridReducer(state.grid, action)
+        };
+    }
+    else if (action.type === actions.MODE_PUSH_PATH_SELECT_SEGMENT) {
+        return {
+            ...state,
+            modes: [...state.modes, modes.PATH_SELECT_SEGMENT ]
+        };
+    }
+    else if (action.type === actions.MODE_POP) {
+        return {
+            ...state,
+            modes: [...state.modes.slice(0, state.modes.length - 1)]
         };
     }
     else {
         return state;
     }
-    /*
-    switch (action.type) {
-        case actions.PATHS_ADD:
-            return { ...state, 
-                paths : [...state.paths, pathReducer(state, action)],
-                edit: {...state.edit, selectedPath: state.paths.length}
-            };
-        case actions.GRID_CYCLE_SIZE:
-            const grid = state.edit.grid;
-            return { ...state,
-                edit: {...state.edit, 
-                    grid: {...grid,
-                        sizeIndex: (grid.sizeIndex + 1) % grid.sizePresets.length
-                    }
-                }
-            }
-        default:
-            return state;
-    }
-    */
 };
 
