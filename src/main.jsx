@@ -59,6 +59,9 @@ const initialState = {
             'k': actions.PATHS_CYCLE_SELECTION_RV,
         },
         [modes.PATH_SELECT_SEGMENT]: {
+            'a': actions.PATH_ADD_SEGMENT,
+            'j': actions.PATH_CYCLE_SEGMENT_SELECTION,
+            'k': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
         }
     },
     modes: [ modes.TOP_DEFAULT ],

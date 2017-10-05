@@ -4,7 +4,7 @@ import * as ReactRedux from 'react-redux';
 import { modes } from './consts.js';
 
 //------------------------------------------------------------------------------
-const Path = ({segments, isSelected, mode}) => {
+const Path = ({segments, isSelected, selectedSegment, mode}) => {
     let pts = [];
     if (isSelected && mode === modes.PATH_SELECT_SEGMENT) {
         pts = segments.filter(p => p[0] !== 'Z').map((p, i) => {
@@ -29,7 +29,8 @@ const Path = ({segments, isSelected, mode}) => {
                     y = 0;
                     break;
             }
-            return <circle className='point' cx={x} cy={y} r='3' key={i}/>;
+            const radius = selectedSegment === i ? 5 : 3;
+            return <circle className='point' cx={x} cy={y} r={radius} key={i}/>;
         });
     }
     const path = segments.map(seg => seg.join(' ')).join(' ');
@@ -45,7 +46,13 @@ const Shapes = ({shapes, selected, mode}) => {
     const ps = shapes.data.map((sh, i) => {
         switch (sh.type)
         {
-            case 'path': return <Path segments={sh.segments} isSelected={i == selected} mode={mode} key={i}/>;
+            case 'path': return (
+                <Path 
+                    segments={sh.segments} 
+                    isSelected={i == selected} 
+                    selectedSegment={sh.selectedSegment} 
+                    mode={mode} 
+                    key={i}/>);
             default: return null;
         }
     });
