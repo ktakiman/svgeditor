@@ -2,12 +2,13 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 
 import { modes } from './consts.js';
+import * as St from './state.js';
 
 //------------------------------------------------------------------------------
 const Path = ({segments, isSelected, selectedSegment, mode}) => {
     let pts = [];
-    if (isSelected && mode === modes.PATH_SELECT_SEGMENT) {
-        pts = segments.filter(p => p[0] !== 'Z').map((p, i) => {
+    if (isSelected && (mode === modes.PATH_SELECT_SEGMENT || mode === modes.PATH_EDIT_POINT)) {
+        pts = segments.map((p, i) => {
             let x, y;
             switch (p[0])
             {
@@ -29,8 +30,10 @@ const Path = ({segments, isSelected, selectedSegment, mode}) => {
                     y = 0;
                     break;
             }
-            const radius = selectedSegment === i ? 5 : 3;
-            return <circle className='point' cx={x} cy={y} r={radius} key={i}/>;
+            const segmentSelected = selectedSegment === i;
+            const radius = segmentSelected ? 5 : 3;
+            const className = 'point' + (segmentSelected && mode === modes.PATH_EDIT_POINT ? ' selected' : '');
+            return <circle className={className} cx={x} cy={y} r={radius} key={i}/>;
         });
     }
     const path = segments.map(seg => seg.join(' ')).join(' ');
@@ -99,17 +102,37 @@ SvgContainer = ReactRedux.connect(
 )(SvgContainer);
 
 
+
 //----------------------------------------------------------------------------------------------------
-let Display = ({mode}) => {
+const displayContents = {
+    segmentDetails : {
+        [modes.PATH_SELECT_SEGMENT] : '',
+        [modes.PATH_EDIT_POINT] : '',
+        [modes.PATH_ADD_SEGMENT] : '',
+    }
+};
+
+let Display = ({mode, selectedShape}) => {
+    let seg = [];
+    if (selectedShape) {
+        seg.push(<div>{selectedShape.type}</div>);
+
+        const pts = selectedShape.segments.map((p, i) => {
+            const cn = 'point' + (i === selectedShape.selectedSegment ? ' selected' : '');
+            return <span className={cn}>{p.join(' ')}</span>;
+        });
+        seg.push(<div>{pts}</div>);
+    }
     return (
-        <div className='button-group'>
+        <div className='display'>
             <h3>{mode}</h3>
+            {seg}
         </div>
     );
 };
 
 Display = ReactRedux.connect(
-    state => ({ mode: state.modes[state.modes.length - 1]}),
+    state => ({ mode: St.curMode(state), selectedShape: St.curShape(state)}),
     dispatch => ({
         onAddPath: () => dispatch({type: actions.PATHS_ADD})
     })
@@ -119,8 +142,8 @@ Display = ReactRedux.connect(
 export const SvgEditor = ({state}) => {
     return (
         <div>
-            <div><SvgContainer/></div>
+            <div className='svg-container'><SvgContainer/></div>
             <Display/>
         </div>
     );
-}
+};

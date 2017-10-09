@@ -1,10 +1,18 @@
+body { font-family: consola, monospace; }
 svg { background-color: lightgray; }
 path { stroke: navy; }
 path.selected { storoke: navy; stroke-width: 3; }
 
 circle.point { stroke: none; fill: black; }
+circle.point.selected { fill: orangered; }
 
 .grid { stroke: white; stroke-dasharray: 1, 1}
 
-.button-group { margin-top: 1em; }
-.button-group h3 { display: inline-block; margin-left: 20px; }
+.svg-container { float: left; }
+.display { margin-left: 810px; vertical-align: top; }
+.display .point { font-size: smaller; white-space: nowrap; display:inline-block; }
+.display .point.selected { font-weight: bold; color: #ff5733; } 
+.display .point:not(:last-child) { margin-right: 10px; }
+
+
+

@@ -13,7 +13,7 @@ export const pathReducer = (data, action) => {
         case actions.PATH_ADD_SEGMENT:
             const last = data.segments[data.segments.length - 1];
             return { ...data,
-                segments: [...data.segments, ['L', last[1] + 50, last[2]]],
+                segments: [...data.segments, ['L', last[1] + 32, last[2]]],
                 selectedSegment: data.segments.length
             }
         default:
@@ -26,13 +26,13 @@ let gAddPath = 1;
 export const pathsReducer = (shapes, action) => {
     switch (action.type) {
         case actions.PATHS_ADD: 
-            const pos = 50 * gAddPath++;
+            const pos = 32 * gAddPath++;
             return { ...shapes, 
                 selected: shapes.data.length,
                 data : [ ...shapes.data, {
                     type: 'path',
                     selectedSegment: 0,
-                    segments: [['M', pos, pos], ['L', pos + 50, pos]]
+                    segments: [['M', pos, pos], ['L', pos + 32, pos]]
                 }]
             };
         case actions.PATHS_CYCLE_SELECTION:
@@ -90,6 +90,15 @@ export const mainReducer = (state, action) => {
         return {
             ...state,
             modes: [...state.modes, modes.PATH_SELECT_SEGMENT ]
+        };
+    }
+    else if (action.type === actions.MODE_PUSH_PATH_SELECT_POINT) {
+        const path = state.shapes.data[state.shapes.selected];
+        const ptType = path.segments[path.selectedSegment][0];
+        const modeToPush = ptType === 'M' || ptType === 'L' ? modes.PATH_EDIT_POINT : modes.PATH_SELECT_POINT;
+        return {
+            ...state,
+            modes: [ ...state.modes, modeToPush ]
         };
     }
     else if (action.type === actions.MODE_POP) {
