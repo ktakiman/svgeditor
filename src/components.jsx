@@ -77,10 +77,9 @@ const Grid = ({size, width, height}) => {
 
 
 //----------------------------------------------------------------------------------------------------
-let SvgContainer = ({containerSize, shapes, grid, mode}) => {
+let SvgContainer = ({containerSize, shapes, gridSize, mode}) => {
     const width = containerSize[0];
     const height = containerSize[1];
-    const gridSize = grid.sizePresets[grid.sizeIndex];
     const gridLines = gridSize > 0 ? <Grid width={width} height={height} size={gridSize}/> : null;
     return (
         <svg width={width} height={height}>
@@ -95,7 +94,7 @@ SvgContainer = ReactRedux.connect(
     state => ({
         containerSize: state.containerSize,
         shapes: state.shapes,
-        grid: state.grid,
+        gridSize: St.gridSize(state),
         mode: state.modes[state.modes.length - 1]
     }),
     null
@@ -115,13 +114,13 @@ const displayContents = {
 let Display = ({mode, selectedShape}) => {
     let seg = [];
     if (selectedShape) {
-        seg.push(<div>{selectedShape.type}</div>);
+        seg.push(<div key='type'>{selectedShape.type}</div>);
 
         const pts = selectedShape.segments.map((p, i) => {
             const cn = 'point' + (i === selectedShape.selectedSegment ? ' selected' : '');
-            return <span className={cn}>{p.join(' ')}</span>;
+            return <span className={cn} key={i}>{p.join(' ')}</span>;
         });
-        seg.push(<div>{pts}</div>);
+        seg.push(<div key='segments'>{pts}</div>);
     }
     return (
         <div className='display'>
@@ -134,7 +133,6 @@ let Display = ({mode, selectedShape}) => {
 Display = ReactRedux.connect(
     state => ({ mode: St.curMode(state), selectedShape: St.curShape(state)}),
     dispatch => ({
-        onAddPath: () => dispatch({type: actions.PATHS_ADD})
     })
 )(Display);
 

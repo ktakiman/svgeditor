@@ -5,6 +5,7 @@ import * as Redux from 'redux';
 import * as ReactRedux from 'react-redux';
 
 import { mainReducer } from './reducers.js';
+//import reducers from './reducers.js';
 import { actions, modes } from './consts.js';
 
 import * as St from './state.js';
@@ -22,7 +23,6 @@ const middleware = Redux.applyMiddleware(logger);
 const state = St.createInitialState();
 
 const store = Redux.createStore(mainReducer, state, middleware);
-
 
 //----------------------------------------------------------------------------------------------------
 document.addEventListener('keydown', event => {

@@ -1,113 +1,100 @@
-import { actions, modes } from './consts.js';
+import { actions, modes } from './consts.js'; 
+import * as St from './state.js';
 
-export const pathReducer = (data, action) => {
-    switch (action.type) {
-        case actions.PATH_CYCLE_SEGMENT_SELECTION:
-            return { ...data,
-                selectedSegment: (data.selectedSegment + 1) % data.segments.length
-            };
-        case actions.PATH_CYCLE_SEGMENT_SELECTION_RV:
-            return { ...data,
-                selectedSegment: data.selectedSegment == 0 ? data.segments.length - 1 : data.selectedSegment -1
-            };
-        case actions.PATH_ADD_SEGMENT:
-            const last = data.segments[data.segments.length - 1];
-            return { ...data,
-                segments: [...data.segments, ['L', last[1] + 32, last[2]]],
-                selectedSegment: data.segments.length
-            }
+export const pointReducer = (segment, gridSize, action) => {
+    let x = segment[1]; // assuming 'M' or 'L' for now
+    let y = segment[2]; //   "
+    switch (action) {
+        case actions.POINT_MOVE_UP:
+            y = y - (y % gridSize === 0 ? gridSize : (y % gridSize));
+            break;
+        case actions.POINT_MOVE_DOWN:
+            y = y + gridSize - (y % gridSize);
+            break;
+        case actions.POINT_MOVE_LEFT:
+            x = x - (x % gridSize === 0 ? gridSize : (x % gridSize));
+            break;
+        case actions.POINT_MOVE_RIGHT:
+            x = x + gridSize - (x % gridSize);
+            break;
         default:
-            return data;
+            break;
     }
-}
 
-let gAddPath = 1;
+    return [segment[0], x, y];
+};
 
-export const pathsReducer = (shapes, action) => {
+const pathReducer = (state, action) => {
     switch (action.type) {
-        case actions.PATHS_ADD: 
-            const pos = 32 * gAddPath++;
-            return { ...shapes, 
-                selected: shapes.data.length,
-                data : [ ...shapes.data, {
-                    type: 'path',
-                    selectedSegment: 0,
-                    segments: [['M', pos, pos], ['L', pos + 32, pos]]
-                }]
-            };
-        case actions.PATHS_CYCLE_SELECTION:
-            return { ...shapes,
-                selected: (shapes.selected + 1) % shapes.data.length
-            };
-        case actions.PATHS_CYCLE_SELECTION_RV:
-            return { ...shapes,
-                selected: shapes.selected == 0 ? shapes.data.length - 1 : shapes.selected - 1
-            };
         case actions.PATH_CYCLE_SEGMENT_SELECTION:
+            return St.cyclePathSegment(state, false);
         case actions.PATH_CYCLE_SEGMENT_SELECTION_RV:
+            return St.cyclePathSegment(state, true);
         case actions.PATH_ADD_SEGMENT:
-            const dataCopy = [...shapes.data];
-            dataCopy[shapes.selected] = pathReducer(dataCopy[shapes.selected], action);
-            return { ...shapes,
-                data: dataCopy
-            };
+            const curPath = St.curShape(state);
+            const lastSeg = curPath.segments[curPath.segments.length - 1];
+            return St.addPathSegment(state, ['L', lastSeg[1] + 32, lastSeg[2]]);
         default:
-            return shapes;
+            return state;
     }
 };
 
-export const gridReducer = (grid, action) => {
+let gAddPath = 1;
+const shapesReducer = (state, action) => {
+    switch (action.type) {
+        case actions.SHAPES_CYCLE_SELECTION:
+            return St.cycleShape(state, false);
+        case actions.SHAPES_CYCLE_SELECTION_RV:
+            return St.cycleShape(state, true);
+        case actions.SHAPES_ADD_PATH:
+            const pos = 32 * gAddPath++;
+            return St.addShape(state, {
+                type: 'path',
+                selectedSegment: 0,
+                segments: [['M', pos, pos], ['L', pos + 32, pos]]});
+
+            
+    }
+};
+
+const gridReducer = (state, action) => {
     switch (action.type) {
         case actions.GRID_CYCLE_SIZE:
-            return {
-                ...grid,
-                sizeIndex: (grid.sizeIndex + 1) % grid.sizePresets.length
-            };
+            return St.cycleGridSize(state, false);
         case actions.GRID_CYCLE_SIZE_RV:
-            return {
-                ...grid,
-                sizeIndex: grid.sizeIndex == 0 ? grid.sizePresets.length - 1 : grid.sizeIndex - 1
-            };
+            return St.cycleGridSize(state, true);
         default:
-            return grid;
+            return state;
     }
-}
+};
+
+const modeReducer = (state, action) => {
+    switch (action.type) {
+        case actions.MODE_POP:
+            return St.popMode(state);
+        case actions.MODE_PUSH_PATH_SELECT_SEGMENT:
+            return St.pushMode(state, modes.PATH_SELECT_SEGMENT);
+        case actions.MODE_PUSH_PATH_SELECT_POINT:
+            const ptType = St.curSegment(state)[0];
+            const newMode = ptType === 'M' || ptType === 'L' ? modes.PATH_EDIT_POINT : modes.PATH_SELECT_POINT;
+            return St.pushMode(state, newMode);
+        default:
+            return state;
+    }
+};
 
 export const mainReducer = (state, action) => {
-    if (action.type.indexOf("PATH") == 0) {
-        return {
-            ...state,
-            shapes: pathsReducer(state.shapes, action),
-        };
+    if (action.type.indexOf("PATH") === 0) {
+        return pathReducer(state, action);
     }
-    else if (action.type.indexOf("GRID") == 0) {
-        return {
-            ...state,
-            grid: gridReducer(state.grid, action)
-        };
+    else if (action.type.indexOf("SHAPES") === 0) {
+        return shapesReducer(state, action);
     }
-    else if (action.type === actions.MODE_PUSH_PATH_SELECT_SEGMENT) {
-        return {
-            ...state,
-            modes: [...state.modes, modes.PATH_SELECT_SEGMENT ]
-        };
+    else if (action.type.indexOf("GRID") === 0) {
+        return gridReducer(state, action);
     }
-    else if (action.type === actions.MODE_PUSH_PATH_SELECT_POINT) {
-        const path = state.shapes.data[state.shapes.selected];
-        const ptType = path.segments[path.selectedSegment][0];
-        const modeToPush = ptType === 'M' || ptType === 'L' ? modes.PATH_EDIT_POINT : modes.PATH_SELECT_POINT;
-        return {
-            ...state,
-            modes: [ ...state.modes, modeToPush ]
-        };
-    }
-    else if (action.type === actions.MODE_POP) {
-        if (state.modes.length > 1) {
-            return {
-                ...state,
-                modes: [...state.modes.slice(0, state.modes.length - 1)]
-            };
-        }
+    else if (action.type.indexOf("MODE") === 0) {
+        return modeReducer(state, action);
     }
 
     return state;
