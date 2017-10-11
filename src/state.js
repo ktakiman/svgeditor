@@ -56,6 +56,10 @@ export const createInitialState = () => ({
         [modes.PATH_SELECT_POINT]: {
         },
         [modes.PATH_EDIT_POINT]: {
+            'h': actions.POINT_MOVE_LEFT,
+            'l': actions.POINT_MOVE_RIGHT,
+            'k': actions.POINT_MOVE_UP,
+            'j': actions.POINT_MOVE_DOWN,
         }
     },
     modes: [ modes.TOP_DEFAULT ],
@@ -100,6 +104,9 @@ export const cyclePathSegment = (state, isReverse) => updateSelectedShape(state,
 
 export const addPathSegment = (state, newSeg) => updateSelectedShape(state, shape => (
     {...shape, selectedSegment: shape.segments.length, segments: [...shape.segments, newSeg]}));
+
+export const updatePathSegment = (state, update) => updateSelectedShape(state, shape => (
+    {...shape, segments: updateArrayItem(shape.segments, shape.selectedSegment, update)}));
 
 export const svg = segments => segments.map(s => s.join(' ')).join(' ');
 

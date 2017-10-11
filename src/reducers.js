@@ -1,28 +1,29 @@
 import { actions, modes } from './consts.js'; 
 import * as St from './state.js';
 
-export const pointReducer = (segment, gridSize, action) => {
-    let x = segment[1]; // assuming 'M' or 'L' for now
-    let y = segment[2]; //   "
-    switch (action) {
-        case actions.POINT_MOVE_UP:
-            y = y - (y % gridSize === 0 ? gridSize : (y % gridSize));
-            break;
-        case actions.POINT_MOVE_DOWN:
-            y = y + gridSize - (y % gridSize);
-            break;
-        case actions.POINT_MOVE_LEFT:
-            x = x - (x % gridSize === 0 ? gridSize : (x % gridSize));
-            break;
-        case actions.POINT_MOVE_RIGHT:
-            x = x + gridSize - (x % gridSize);
-            break;
-        default:
-            break;
-    }
-
-    return [segment[0], x, y];
-};
+const pointReducer = (state, action) => St.updatePathSegment(state, seg => {
+        let x = seg[1]; // assuming 'M' or 'L' for now
+        let y = seg[2]; //   "
+        const unit = St.gridSize(state) || 1;
+        switch (action.type) {
+            case actions.POINT_MOVE_UP:
+                y = y - (y % unit === 0 ? unit : (y % unit));
+                break;
+            case actions.POINT_MOVE_DOWN:
+                y = y + unit - (y % unit);
+                break;
+            case actions.POINT_MOVE_LEFT:
+                x = x - (x % unit === 0 ? unit : (x % unit));
+                break;
+            case actions.POINT_MOVE_RIGHT:
+                x = x + unit - (x % unit);
+                break;
+            default:
+                break;
+        }
+        
+        return [seg[0], x, y];
+    });
 
 const pathReducer = (state, action) => {
     switch (action.type) {
@@ -83,20 +84,20 @@ const modeReducer = (state, action) => {
     }
 };
 
+const mapReducers = [
+    { prefix: "PATH", reducer: pathReducer },
+    { prefix: "SHAPES", reducer: shapesReducer },
+    { prefix: "GRID", reducer: gridReducer },
+    { prefix: "MODE", reducer: modeReducer },
+    { prefix: "POINT", reducer: pointReducer }
+];
+
 export const mainReducer = (state, action) => {
-    if (action.type.indexOf("PATH") === 0) {
-        return pathReducer(state, action);
-    }
-    else if (action.type.indexOf("SHAPES") === 0) {
-        return shapesReducer(state, action);
-    }
-    else if (action.type.indexOf("GRID") === 0) {
-        return gridReducer(state, action);
-    }
-    else if (action.type.indexOf("MODE") === 0) {
-        return modeReducer(state, action);
+    for (const mi of mapReducers) {
+        if (action.type.indexOf(mi.prefix) === 0) {
+            return mi.reducer(state, action);
+        }
     }
 
     return state;
-};
-
+} 

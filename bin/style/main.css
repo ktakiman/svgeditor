@@ -1,6 +1,6 @@
 body { font-family: consola, monospace; }
-svg { background-color: lightgray; }
-path { stroke: navy; }
+svg { background-color: #e0e0d0; }
+path { stroke: navy; fill: none; }
 path.selected { storoke: navy; stroke-width: 3; }
 
 circle.point { stroke: none; fill: black; }
