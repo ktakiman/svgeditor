@@ -44,14 +44,18 @@ export const createInitialState = () => ({
         [modes.TOP_DEFAULT]: {
             ' ': actions.MODE_PUSH_PATH_SELECT_SEGMENT,  // temporary, depends on a currently selected shape type
             'p': actions.SHAPES_ADD_PATH,
-            'j': actions.SHAPES_CYCLE_SELECTION,
-            'k': actions.SHAPES_CYCLE_SELECTION_RV,
+            'n': actions.SHAPES_CYCLE_SELECTION,
+            'N': actions.SHAPES_CYCLE_SELECTION_RV,
         },
         [modes.PATH_SELECT_SEGMENT]: {
-            ' ': actions.MODE_PUSH_PATH_SELECT_POINT,
+            //' ': actions.MODE_PUSH_PATH_SELECT_POINT,
             'a': actions.PATH_ADD_SEGMENT,
-            'j': actions.PATH_CYCLE_SEGMENT_SELECTION,
-            'k': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
+            'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
+            'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
+            'h': actions.POINT_MOVE_LEFT,
+            'l': actions.POINT_MOVE_RIGHT,
+            'k': actions.POINT_MOVE_UP,
+            'j': actions.POINT_MOVE_DOWN,
         },
         [modes.PATH_SELECT_POINT]: {
         },

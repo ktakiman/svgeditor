@@ -111,10 +111,17 @@ const displayContents = {
     }
 };
 
-let Display = ({mode, selectedShape}) => {
-    let seg = [];
+const addKeyMapDOM = (map, array, keyPrefix) => {
+    array.push.apply(array, Object.keys(map).map((k, i) => (
+        //<p key={keyPrefix+i}><span className='key'>{'\'' + k + '\''}</span> - {map[k]}</p>
+        <tr key={keyPrefix+i}><td key='c1' className='col-one'>{'\'' + k + '\''}</td><td key='c2'>{map[k]}</td></tr>
+    )));
+};
+
+let Display = ({mode, selectedShape, keyMapping}) => {
+    const seg = [];
     if (selectedShape) {
-        seg.push(<div key='type'>{selectedShape.type}</div>);
+        seg.push(<div key='type'>{'TYPE: ' + selectedShape.type}</div>);
 
         const pts = selectedShape.segments.map((p, i) => {
             const cn = 'point' + (i === selectedShape.selectedSegment ? ' selected' : '');
@@ -122,16 +129,24 @@ let Display = ({mode, selectedShape}) => {
         });
         seg.push(<div key='segments'>{pts}</div>);
     }
+    const keyMap = [];
+    addKeyMapDOM(keyMapping['universal'], keyMap, 'd');
+    addKeyMapDOM(keyMapping[mode], keyMap, 'm');
+    
     return (
         <div className='display'>
             <h3>{mode}</h3>
             {seg}
+            <h3>Keyboard Mapping</h3>
+            <table className='keyboard-mapping'><tbody>
+                {keyMap}
+            </tbody></table>
         </div>
     );
 };
 
 Display = ReactRedux.connect(
-    state => ({ mode: St.curMode(state), selectedShape: St.curShape(state)}),
+    state => ({ mode: St.curMode(state), selectedShape: St.curShape(state), keyMapping: state.keyMapping}),
     dispatch => ({
     })
 )(Display);

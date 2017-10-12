@@ -14,5 +14,6 @@ circle.point.selected { fill: orangered; }
 .display .point.selected { font-weight: bold; color: #ff5733; } 
 .display .point:not(:last-child) { margin-right: 10px; }
 
-
+.display .keyboard-mapping { font-size: smaller; }
+.display .keyboard-mapping .col-one { padding-right: 10px; }
 
