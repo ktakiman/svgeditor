@@ -1,22 +1,43 @@
 import { actions, modes } from './consts.js'; 
 import * as St from './state.js';
 
+const snap = (cur, unit, increase) => {
+    unit = unit || 1;
+    return increase ?
+        cur + unit - (cur % unit) :
+        cur - (cur % unit === 0 ? unit : (y % unit));
+};
+
+const translateMove = action => {
+    let isY = false;
+    let isIncrease = false;
+    if (action.match(/UP$/)) {
+        isY = true;
+    } else if (action.match(/DOWN$/)) {
+        isY = true;
+        isIncrease = true;
+    } else if (action.match(/RIGHT$/)) {
+        isIncrease = true;
+    }
+    return {isY, isIncrease};
+};
+
 const pointReducer = (state, action) => St.updatePathSegment(state, seg => {
         let x = seg[1]; // assuming 'M' or 'L' for now
         let y = seg[2]; //   "
-        const unit = St.gridSize(state) || 1;
+        const unit = St.gridSize(state);
         switch (action.type) {
             case actions.POINT_MOVE_UP:
-                y = y - (y % unit === 0 ? unit : (y % unit));
+                y = snap(y, unit, false);
                 break;
             case actions.POINT_MOVE_DOWN:
-                y = y + unit - (y % unit);
+                y = snap(y, unit, true);
                 break;
             case actions.POINT_MOVE_LEFT:
-                x = x - (x % unit === 0 ? unit : (x % unit));
+                x = snap(x, unit, false);
                 break;
             case actions.POINT_MOVE_RIGHT:
-                x = x + unit - (x % unit);
+                x = snap(x, unit, true);
                 break;
             default:
                 break;
@@ -35,6 +56,20 @@ const pathReducer = (state, action) => {
             const curPath = St.curShape(state);
             const lastSeg = curPath.segments[curPath.segments.length - 1];
             return St.addPathSegment(state, ['L', lastSeg[1] + 32, lastSeg[2]]);
+        case actions.PATH_MOVE_UP:
+        case actions.PATH_MOVE_DOWN:
+        case actions.PATH_MOVE_LEFT:
+        case actions.PATH_MOVE_RIGHT:
+            const {isY, isIncrease} = translateMove(action.type);
+            const curSeg = St.curSegment(state);
+            const vPrev = curSeg[isY ? 2 : 1];
+            const vNew = snap(vPrev, St.gridSize(state), isIncrease);
+            const diff = vNew - vPrev;
+            return St.updateSelectedShape(state, path => ({
+                ...path, 
+                segments: path.segments.map(seg => [seg[0], isY ? seg[1] : seg[1] + diff, isY ? seg[2] + diff : seg[2]])
+            }));
+
         default:
             return state;
     }

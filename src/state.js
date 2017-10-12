@@ -52,6 +52,10 @@ export const createInitialState = () => ({
             'a': actions.PATH_ADD_SEGMENT,
             'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
             'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
+            'H': actions.PATH_MOVE_LEFT,
+            'L': actions.PATH_MOVE_RIGHT,
+            'K': actions.PATH_MOVE_UP,
+            'J': actions.PATH_MOVE_DOWN,
             'h': actions.POINT_MOVE_LEFT,
             'l': actions.POINT_MOVE_RIGHT,
             'k': actions.POINT_MOVE_UP,
@@ -101,7 +105,10 @@ export const updateSelectedShape = (state, update) => updateShapes(state, shapes
     {...shapes, data: updateArrayItem(shapes.data, shapes.selected, update)}));
 
 // path
-export const curSegment = state => curShape(state, shape => shape.segments[shape.selectedSegment]);
+export const curSegment = (state, callback) => curShape(state, shape => {
+    const seg = shape.segments[shape.selectedSegment];
+    return callback ? callback(seg) : seg;
+});
 
 export const cyclePathSegment = (state, isReverse) => updateSelectedShape(state, shape => (
     {...shape, selectedSegment: cycle(shape.segments, shape.selectedSegment, isReverse)}));
