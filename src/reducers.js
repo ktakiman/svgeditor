@@ -46,12 +46,33 @@ const pointReducer = (state, action) => St.updatePathSegment(state, seg => {
         return [seg[0], x, y];
     });
 
+const pointReducer2 = (state, action) => {
+    switch (action.type) {
+        case actions.POINT_MOVE_UP:
+        case actions.POINT_MOVE_DOWN:
+        case actions.POINT_MOVE_LEFT:
+        case actions.POINT_MOVE_RIGHT:
+            const {isY, isIncrease} = translateMove(action.type);
+            const unit = St.gridSize(state);
+            return St.updatePathSegment(state, seg => [
+                seg[0], 
+                isY ? seg[1] : snap(seg[1], unit, isIncrease), 
+                isY ? snap(seg[2], unit, isIncrease) : seg[2]
+            ]);
+    }
+};
+
 const pathReducer = (state, action) => {
     switch (action.type) {
         case actions.PATH_CYCLE_SEGMENT_SELECTION:
             return St.cyclePathSegment(state, false);
         case actions.PATH_CYCLE_SEGMENT_SELECTION_RV:
             return St.cyclePathSegment(state, true);
+        case actions.PATH_TOGGLE_CLOSE:
+            return St.updateSelectedShape(state, path => ({
+                ...path,
+                closed: !path.closed
+            }));
         case actions.PATH_ADD_SEGMENT:
             const curPath = St.curShape(state);
             const lastSeg = curPath.segments[curPath.segments.length - 1];
@@ -75,6 +96,15 @@ const pathReducer = (state, action) => {
     }
 };
 
+const shapeReducer = (state, action) => {
+    switch (action.type) {
+        case actions.SHAPE_TOGGLE_CLOSE:
+            return St.updateSelectedShape(state, shape => ({...shape, fill: !shape.fill}));
+        default:
+            return state;
+    }
+}
+
 let gAddPath = 1;
 const shapesReducer = (state, action) => {
     switch (action.type) {
@@ -87,9 +117,9 @@ const shapesReducer = (state, action) => {
             return St.addShape(state, {
                 type: 'path',
                 selectedSegment: 0,
+                closed: false,
+                fill: false,
                 segments: [['M', pos, pos], ['L', pos + 32, pos]]});
-
-            
     }
 };
 
@@ -122,9 +152,10 @@ const modeReducer = (state, action) => {
 const mapReducers = [
     { prefix: "PATH", reducer: pathReducer },
     { prefix: "SHAPES", reducer: shapesReducer },
+    { prefix: "SHAPE", reducer: shapeReducer },
     { prefix: "GRID", reducer: gridReducer },
     { prefix: "MODE", reducer: modeReducer },
-    { prefix: "POINT", reducer: pointReducer }
+    { prefix: "POINT", reducer: pointReducer2 }
 ];
 
 export const mainReducer = (state, action) => {

@@ -5,10 +5,10 @@ import { modes } from './consts.js';
 import * as St from './state.js';
 
 //------------------------------------------------------------------------------
-const Path = ({segments, isSelected, selectedSegment, mode}) => {
+const Path = ({data, selected, mode}) => {
     let pts = [];
-    if (isSelected && (mode === modes.PATH_SELECT_SEGMENT || mode === modes.PATH_EDIT_POINT)) {
-        pts = segments.map((p, i) => {
+    if (selected && (mode === modes.PATH_SELECT_SEGMENT || mode === modes.PATH_EDIT_POINT)) {
+        pts = data.segments.map((p, i) => {
             let x, y;
             switch (p[0])
             {
@@ -30,16 +30,21 @@ const Path = ({segments, isSelected, selectedSegment, mode}) => {
                     y = 0;
                     break;
             }
-            const segmentSelected = selectedSegment === i;
+            const segmentSelected = data.selectedSegment === i;
             const radius = segmentSelected ? 5 : 3;
             const className = 'point' + (segmentSelected && mode === modes.PATH_EDIT_POINT ? ' selected' : '');
             return <circle className={className} cx={x} cy={y} r={radius} key={i}/>;
         });
     }
-    const path = segments.map(seg => seg.join(' ')).join(' ');
+    //const path = segments.map(seg => seg.join(' ')).join(' ') + (closed ? 'Z' : '');
+    const path = St.svg(data);
+    const classNames = [];
+    if (selected) { classNames.push('selected'); }
+    if (data.closed) { classNames.push('closed'); }
+    if (data.fill) { classNames.push('fill'); }
     return (
         <g>
-            <path className={isSelected ? 'selected' : null} d={path}/>;
+            <path className={classNames.join(' ')} d={path}/>;
             {pts}
         </g>);
 };
@@ -51,9 +56,8 @@ const Shapes = ({shapes, selected, mode}) => {
         {
             case 'path': return (
                 <Path 
-                    segments={sh.segments} 
-                    isSelected={i == selected} 
-                    selectedSegment={sh.selectedSegment} 
+                    data={sh} 
+                    selected={i === shapes.selected} 
                     mode={mode} 
                     key={i}/>);
             default: return null;
@@ -127,6 +131,11 @@ let Display = ({mode, selectedShape, keyMapping}) => {
             const cn = 'point' + (i === selectedShape.selectedSegment ? ' selected' : '');
             return <span className={cn} key={i}>{p.join(' ')}</span>;
         });
+        
+        if (selectedShape.type === 'path' && selectedShape.closed) {
+            pts.push(<span className='point'>Z</span>);
+        }
+
         seg.push(<div key='segments'>{pts}</div>);
     }
     const keyMap = [];

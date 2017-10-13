@@ -17,8 +17,10 @@ import { actions, modes } from './consts.js';
         selected: index
         data: [
             { 
-                type: 'path', // etc
+                type: 'path',
                 selectedSegment: index,
+                closed: bool,
+                fill: bool,
                 segments: [
                     ['M,L,etc...', n, n, ...]
                 ]
@@ -56,6 +58,8 @@ export const createInitialState = () => ({
             'L': actions.PATH_MOVE_RIGHT,
             'K': actions.PATH_MOVE_UP,
             'J': actions.PATH_MOVE_DOWN,
+            'c': actions.PATH_TOGGLE_CLOSE,
+            'f': actions.SHAPE_TOGGLE_CLOSE,
             'h': actions.POINT_MOVE_LEFT,
             'l': actions.POINT_MOVE_RIGHT,
             'k': actions.POINT_MOVE_UP,
@@ -119,7 +123,17 @@ export const addPathSegment = (state, newSeg) => updateSelectedShape(state, shap
 export const updatePathSegment = (state, update) => updateSelectedShape(state, shape => (
     {...shape, segments: updateArrayItem(shape.segments, shape.selectedSegment, update)}));
 
-export const svg = segments => segments.map(s => s.join(' ')).join(' ');
+export const svg  = shape => {
+    let base = shape.segments.map(s => s.join(' ')).join(' ');
+    switch (shape.type) {
+        case 'path':
+            if (shape.closed) { base += 'Z'; }
+            break;
+        default:
+            break;
+    }
+    return base;
+};
 
 // mode
 export const curMode = state => state.modes[state.modes.length - 1];
