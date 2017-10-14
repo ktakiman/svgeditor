@@ -106,6 +106,9 @@ const shapeReducer = (state, action) => {
 }
 
 let gAddPath = 1;
+const shiftIndex = (index, length) => (index < length - 1) ? index : index - 1;
+const sliceOther = (array, index) => [...array.slice(0, index), ...array.slice(index + 1, array.length)];
+
 const shapesReducer = (state, action) => {
     switch (action.type) {
         case actions.SHAPES_CYCLE_SELECTION:
@@ -120,6 +123,12 @@ const shapesReducer = (state, action) => {
                 closed: false,
                 fill: false,
                 segments: [['M', pos, pos], ['L', pos + 32, pos]]});
+        case actions.SHAPES_DELETE_SHAPE:
+            return St.updateShapes(state, shapes => ({
+                ...shapes,
+                selected: shiftIndex(shapes.selected, shapes.data.length),
+                data: sliceOther(shapes.data, shapes.selected)
+            }));
     }
 };
 

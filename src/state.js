@@ -46,6 +46,7 @@ export const createInitialState = () => ({
         [modes.TOP_DEFAULT]: {
             ' ': actions.MODE_PUSH_PATH_SELECT_SEGMENT,  // temporary, depends on a currently selected shape type
             'p': actions.SHAPES_ADD_PATH,
+            'D': actions.SHAPES_DELETE_SHAPE,
             'n': actions.SHAPES_CYCLE_SELECTION,
             'N': actions.SHAPES_CYCLE_SELECTION_RV,
         },
@@ -103,7 +104,7 @@ export const cycleShape = (state, isReverse) => updateShapes(state, shapes => (
     {...shapes, selected: cycle(shapes.data, shapes.selected, isReverse)}));
 
 export const addShape = (state, newShape) => updateShapes(state, shapes => 
-    ({...shapes, selected: shapes.selected + 1, data: [...shapes.data, newShape]}));
+    ({...shapes, selected: shapes.data.length, data: [...shapes.data, newShape]}));
 
 export const updateSelectedShape = (state, update) => updateShapes(state, shapes => (
     {...shapes, data: updateArrayItem(shapes.data, shapes.selected, update)}));
