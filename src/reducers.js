@@ -22,31 +22,7 @@ const translateMove = action => {
     return {isY, isIncrease};
 };
 
-const pointReducer = (state, action) => St.updatePathSegment(state, seg => {
-        let x = seg[1]; // assuming 'M' or 'L' for now
-        let y = seg[2]; //   "
-        const unit = St.gridSize(state);
-        switch (action.type) {
-            case actions.POINT_MOVE_UP:
-                y = snap(y, unit, false);
-                break;
-            case actions.POINT_MOVE_DOWN:
-                y = snap(y, unit, true);
-                break;
-            case actions.POINT_MOVE_LEFT:
-                x = snap(x, unit, false);
-                break;
-            case actions.POINT_MOVE_RIGHT:
-                x = snap(x, unit, true);
-                break;
-            default:
-                break;
-        }
-        
-        return [seg[0], x, y];
-    });
-
-const pointReducer2 = (state, action) => {
+const pointReducer = (state, action) => {
     switch (action.type) {
         case actions.POINT_MOVE_UP:
         case actions.POINT_MOVE_DOWN:
@@ -77,6 +53,19 @@ const pathReducer = (state, action) => {
             const curPath = St.curShape(state);
             const lastSeg = curPath.segments[curPath.segments.length - 1];
             return St.addPathSegment(state, ['L', lastSeg[1] + 32, lastSeg[2]]);
+        case actions.PATH_DELETE_POINT:
+            return St.updateSelectedShape(state, shape => {
+                if (shape.segments.length > 2) {
+                    let newSegments = St.sliceOther(shape.segments, shape.selectedSegment);
+                    newSegments = St.updateArrayItem(newSegments, 0, segments => St.updateArrayItem(segments, 0, act => 'M'));
+                    return {
+                        ...shape,
+                        selectedSegment: St.shiftIndex(shape.selectedSegment, shape.segments.length),
+                        segments: newSegments
+                   }
+                }
+                return shape;
+            });
         case actions.PATH_MOVE_UP:
         case actions.PATH_MOVE_DOWN:
         case actions.PATH_MOVE_LEFT:
@@ -106,8 +95,6 @@ const shapeReducer = (state, action) => {
 }
 
 let gAddPath = 1;
-const shiftIndex = (index, length) => (index < length - 1) ? index : index - 1;
-const sliceOther = (array, index) => [...array.slice(0, index), ...array.slice(index + 1, array.length)];
 
 const shapesReducer = (state, action) => {
     switch (action.type) {
@@ -126,8 +113,8 @@ const shapesReducer = (state, action) => {
         case actions.SHAPES_DELETE_SHAPE:
             return St.updateShapes(state, shapes => ({
                 ...shapes,
-                selected: shiftIndex(shapes.selected, shapes.data.length),
-                data: sliceOther(shapes.data, shapes.selected)
+                selected: St.shiftIndex(shapes.selected, shapes.data.length),
+                data: St.sliceOther(shapes.data, shapes.selected)
             }));
     }
 };
@@ -164,7 +151,7 @@ const mapReducers = [
     { prefix: "SHAPE", reducer: shapeReducer },
     { prefix: "GRID", reducer: gridReducer },
     { prefix: "MODE", reducer: modeReducer },
-    { prefix: "POINT", reducer: pointReducer2 }
+    { prefix: "POINT", reducer: pointReducer }
 ];
 
 export const mainReducer = (state, action) => {

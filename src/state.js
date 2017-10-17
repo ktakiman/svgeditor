@@ -49,22 +49,27 @@ export const createInitialState = () => ({
             'D': actions.SHAPES_DELETE_SHAPE,
             'n': actions.SHAPES_CYCLE_SELECTION,
             'N': actions.SHAPES_CYCLE_SELECTION_RV,
+            'h': actions.PATH_MOVE_LEFT,
+            'l': actions.PATH_MOVE_RIGHT,
+            'k': actions.PATH_MOVE_UP,
+            'j': actions.PATH_MOVE_DOWN,
         },
         [modes.PATH_SELECT_SEGMENT]: {
             //' ': actions.MODE_PUSH_PATH_SELECT_POINT,
             'a': actions.PATH_ADD_SEGMENT,
             'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
             'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
-            'H': actions.PATH_MOVE_LEFT,
-            'L': actions.PATH_MOVE_RIGHT,
-            'K': actions.PATH_MOVE_UP,
-            'J': actions.PATH_MOVE_DOWN,
+            'h': actions.PATH_MOVE_LEFT,
+            'l': actions.PATH_MOVE_RIGHT,
+            'k': actions.PATH_MOVE_UP,
+            'j': actions.PATH_MOVE_DOWN,
             'c': actions.PATH_TOGGLE_CLOSE,
             'f': actions.SHAPE_TOGGLE_CLOSE,
-            'h': actions.POINT_MOVE_LEFT,
-            'l': actions.POINT_MOVE_RIGHT,
-            'k': actions.POINT_MOVE_UP,
-            'j': actions.POINT_MOVE_DOWN,
+            'H': actions.POINT_MOVE_LEFT,
+            'L': actions.POINT_MOVE_RIGHT,
+            'K': actions.POINT_MOVE_UP,
+            'J': actions.POINT_MOVE_DOWN,
+            'D': actions.PATH_DELETE_POINT,
         },
         [modes.PATH_SELECT_POINT]: {
         },
@@ -82,15 +87,18 @@ export const createInitialState = () => ({
     },
 });
 
-// helper methods
+// helper methods (TODO: move to a different .js file)
 const cycle = (array, cur, isReverse) => isReverse ? (cur == 0 ? array.length - 1 : cur - 1) : ((cur + 1) % array.length);
 
-const updateArrayItem = (array, index, update) => {
+export const updateArrayItem = (array, index, update) => {
     const copy = [...array];
     copy[index] = update(copy[index]);
     return copy;
 }
     
+export const shiftIndex = (index, length) => (index < length - 1) ? index : index - 1;
+export const sliceOther = (array, index) => [...array.slice(0, index), ...array.slice(index + 1, array.length)];
+
 // shape
 
 export const updateShapes = (state, update) => ({...state, shapes: update(state.shapes)});
