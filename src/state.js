@@ -56,7 +56,8 @@ export const createInitialState = () => ({
         },
         [modes.PATH_SELECT_SEGMENT]: {
             //' ': actions.MODE_PUSH_PATH_SELECT_POINT,
-            'a': actions.PATH_ADD_SEGMENT,
+            'a': actions.PATH_ADD_POINT,
+            'i': actions.PATH_INSERT_POINT,
             'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
             'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
             'h': actions.PATH_MOVE_LEFT,
@@ -98,6 +99,11 @@ export const updateArrayItem = (array, index, update) => {
     
 export const shiftIndex = (index, length) => (index < length - 1) ? index : index - 1;
 export const sliceOther = (array, index) => [...array.slice(0, index), ...array.slice(index + 1, array.length)];
+export const insertAt = (array, index, item) => {
+    const copy = [...array];
+    copy.splice(index + 1, 0, item);
+    return copy;
+}
 
 // shape
 

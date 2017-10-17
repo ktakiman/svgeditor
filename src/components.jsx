@@ -133,7 +133,7 @@ let Display = ({mode, selectedShape, keyMapping}) => {
         });
         
         if (selectedShape.type === 'path' && selectedShape.closed) {
-            pts.push(<span className='point'>Z</span>);
+            pts.push(<span className='point' key={selectedShape.segments.length}>Z</span>);
         }
 
         seg.push(<div key='segments'>{pts}</div>);

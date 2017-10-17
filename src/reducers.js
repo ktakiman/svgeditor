@@ -5,7 +5,7 @@ const snap = (cur, unit, increase) => {
     unit = unit || 1;
     return increase ?
         cur + unit - (cur % unit) :
-        cur - (cur % unit === 0 ? unit : (y % unit));
+        cur - (cur % unit === 0 ? unit : (cur % unit));
 };
 
 const translateMove = action => {
@@ -49,10 +49,29 @@ const pathReducer = (state, action) => {
                 ...path,
                 closed: !path.closed
             }));
-        case actions.PATH_ADD_SEGMENT:
+        case actions.PATH_ADD_POINT:
             const curPath = St.curShape(state);
             const lastSeg = curPath.segments[curPath.segments.length - 1];
             return St.addPathSegment(state, ['L', lastSeg[1] + 32, lastSeg[2]]);
+        case actions.PATH_INSERT_POINT:
+            return St.updateSelectedShape(state, shape => {
+                let from = shape.segments[shape.selectedSegment];
+                let to;
+                if (shape.selectedSegment < shape.segments.length - 1) {
+                    to = shape.segments[shape.selectedSegment + 1];
+                } else if (shape.closed) {
+                    to = shape.segments[0];
+                } else {
+                    return shape;
+                }
+
+                const newPt = ['L', (from[1] + to[1]) / 2, (from[2] + to[2]) / 2];
+                return { 
+                    ...shape, 
+                    selectedSegment: shape.selectedSegment + 1,
+                    segments: St.insertAt(shape.segments, shape.selectedSegment, newPt)
+                };
+            });
         case actions.PATH_DELETE_POINT:
             return St.updateSelectedShape(state, shape => {
                 if (shape.segments.length > 2) {
