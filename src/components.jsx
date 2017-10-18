@@ -5,43 +5,24 @@ import { modes } from './consts.js';
 import * as St from './state.js';
 
 //------------------------------------------------------------------------------
-const Path = ({data, selected, mode}) => {
+const Path = ({shape, selected, mode}) => {
     let pts = [];
     if (selected && (mode === modes.PATH_SELECT_SEGMENT || mode === modes.PATH_EDIT_POINT)) {
-        pts = data.segments.map((p, i) => {
-            let x, y;
-            switch (p[0])
-            {
-                case 'M':
-                case 'L':
-                    x = p[1];
-                    y = p[2];
-                    break;
-                case 'Q':
-                    x = p[3];
-                    y = p[4];
-                    break;
-                case 'C':
-                    x = p[5];
-                    y = p[6];
-                    break; 
-                default:
-                    x = 0;
-                    y = 0;
-                    break;
-            }
-            const segmentSelected = data.selectedSegment === i;
+        pts = shape.segments.map((p, i) => {
+            const x = p[1];
+            const y = p[2];
+            const segmentSelected = shape.selectedSegment === i;
             const radius = segmentSelected ? 5 : 3;
             const className = 'point' + (segmentSelected && mode === modes.PATH_EDIT_POINT ? ' selected' : '');
             return <circle className={className} cx={x} cy={y} r={radius} key={i}/>;
         });
     }
     //const path = segments.map(seg => seg.join(' ')).join(' ') + (closed ? 'Z' : '');
-    const path = St.svg(data);
+    const path = St.svg(shape);
     const classNames = [];
     if (selected) { classNames.push('selected'); }
-    if (data.closed) { classNames.push('closed'); }
-    if (data.fill) { classNames.push('fill'); }
+    if (shape.closed) { classNames.push('closed'); }
+    if (shape.fill) { classNames.push('fill'); }
     return (
         <g>
             <path className={classNames.join(' ')} d={path}/>;
@@ -56,7 +37,7 @@ const Shapes = ({shapes, selected, mode}) => {
         {
             case 'path': return (
                 <Path 
-                    data={sh} 
+                    shape={sh} 
                     selected={i === shapes.selected} 
                     mode={mode} 
                     key={i}/>);

@@ -30,11 +30,11 @@ const pointReducer = (state, action) => {
         case actions.POINT_MOVE_RIGHT:
             const {isY, isIncrease} = translateMove(action.type);
             const unit = St.gridSize(state);
-            return St.updatePathSegment(state, seg => [
-                seg[0], 
-                isY ? seg[1] : snap(seg[1], unit, isIncrease), 
-                isY ? snap(seg[2], unit, isIncrease) : seg[2]
-            ]);
+            return St.updatePathSegment(state, seg => St.movePathSegment(
+                seg,
+                isY ? 0 : snap(seg[1], unit, isIncrease) - seg[1], 
+                isY ? snap(seg[2], unit, isIncrease) - seg[2] : 0
+            ));
     }
 };
 
@@ -49,10 +49,15 @@ const pathReducer = (state, action) => {
                 ...path,
                 closed: !path.closed
             }));
-        case actions.PATH_ADD_POINT:
-            const curPath = St.curShape(state);
-            const lastSeg = curPath.segments[curPath.segments.length - 1];
-            return St.addPathSegment(state, ['L', lastSeg[1] + 32, lastSeg[2]]);
+        case actions.PATH_ADD_LINE:
+            return St.addPathSegment(state, lastSeg => ['L', lastSeg[1] + 32, lastSeg[2]]);
+        case actions.PATH_ADD_BEZIER:
+            return St.addPathSegment(state, lastSeg => ['Q', lastSeg[1] + 32, lastSeg[2], lastSeg[1], lastSeg[2] + 32]);
+        case actions.PATH_ADD_CUBIC_BEZIER:
+            return St.addPathSegment(state, lastSeg => ['C', 
+                lastSeg[1] + 32, lastSeg[2], 
+                lastSeg[1] + 16, lastSeg[2] - 32, 
+                lastSeg[1] + 16, lastSeg[2] + 32]);
         case actions.PATH_INSERT_POINT:
             return St.updateSelectedShape(state, shape => {
                 let from = shape.segments[shape.selectedSegment];
@@ -96,7 +101,7 @@ const pathReducer = (state, action) => {
             const diff = vNew - vPrev;
             return St.updateSelectedShape(state, path => ({
                 ...path, 
-                segments: path.segments.map(seg => [seg[0], isY ? seg[1] : seg[1] + diff, isY ? seg[2] + diff : seg[2]])
+                segments: path.segments.map(seg => St.movePathSegment(seg, isY ? 0 : diff, isY ? diff : 0))
             }));
 
         default:
@@ -106,7 +111,7 @@ const pathReducer = (state, action) => {
 
 const shapeReducer = (state, action) => {
     switch (action.type) {
-        case actions.SHAPE_TOGGLE_CLOSE:
+        case actions.SHAPE_TOGGLE_FILL:
             return St.updateSelectedShape(state, shape => ({...shape, fill: !shape.fill}));
         default:
             return state;

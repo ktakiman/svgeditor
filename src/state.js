@@ -34,7 +34,7 @@ export const createInitialState = () => ({
     containerSize: [800, 500], 
     grid: { 
         sizePresets: [0, 8, 16, 32],
-        sizeIndex: 0
+        sizeIndex: 2
     },
     keyMapping: {
         'universal': {
@@ -46,7 +46,7 @@ export const createInitialState = () => ({
         [modes.TOP_DEFAULT]: {
             ' ': actions.MODE_PUSH_PATH_SELECT_SEGMENT,  // temporary, depends on a currently selected shape type
             'p': actions.SHAPES_ADD_PATH,
-            'D': actions.SHAPES_DELETE_SHAPE,
+            'x': actions.SHAPES_DELETE_SHAPE,
             'n': actions.SHAPES_CYCLE_SELECTION,
             'N': actions.SHAPES_CYCLE_SELECTION_RV,
             'h': actions.PATH_MOVE_LEFT,
@@ -56,21 +56,23 @@ export const createInitialState = () => ({
         },
         [modes.PATH_SELECT_SEGMENT]: {
             //' ': actions.MODE_PUSH_PATH_SELECT_POINT,
-            'a': actions.PATH_ADD_POINT,
+            'f': actions.SHAPE_TOGGLE_FILL,
+            't': actions.PATH_ADD_LINE,
+            'b': actions.PATH_ADD_BEZIER,
+            'c': actions.PATH_ADD_CUBIC_BEZIER,
             'i': actions.PATH_INSERT_POINT,
+            'x': actions.PATH_DELETE_POINT,
             'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
             'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
             'h': actions.PATH_MOVE_LEFT,
             'l': actions.PATH_MOVE_RIGHT,
             'k': actions.PATH_MOVE_UP,
             'j': actions.PATH_MOVE_DOWN,
-            'c': actions.PATH_TOGGLE_CLOSE,
-            'f': actions.SHAPE_TOGGLE_CLOSE,
+            's': actions.PATH_TOGGLE_CLOSE,
             'H': actions.POINT_MOVE_LEFT,
             'L': actions.POINT_MOVE_RIGHT,
             'K': actions.POINT_MOVE_UP,
             'J': actions.POINT_MOVE_DOWN,
-            'D': actions.PATH_DELETE_POINT,
         },
         [modes.PATH_SELECT_POINT]: {
         },
@@ -123,6 +125,7 @@ export const addShape = (state, newShape) => updateShapes(state, shapes =>
 export const updateSelectedShape = (state, update) => updateShapes(state, shapes => (
     {...shapes, data: updateArrayItem(shapes.data, shapes.selected, update)}));
 
+
 // path
 export const curSegment = (state, callback) => curShape(state, shape => {
     const seg = shape.segments[shape.selectedSegment];
@@ -132,22 +135,57 @@ export const curSegment = (state, callback) => curShape(state, shape => {
 export const cyclePathSegment = (state, isReverse) => updateSelectedShape(state, shape => (
     {...shape, selectedSegment: cycle(shape.segments, shape.selectedSegment, isReverse)}));
 
-export const addPathSegment = (state, newSeg) => updateSelectedShape(state, shape => (
-    {...shape, selectedSegment: shape.segments.length, segments: [...shape.segments, newSeg]}));
-
+export const addPathSegment = (state, createNewSegment) => updateSelectedShape(state, shape => (
+    {
+        ...shape, 
+        selectedSegment: shape.segments.length, 
+        segments: [...shape.segments, createNewSegment(shape.segments[shape.segments.length - 1])]
+    }));
+    
 export const updatePathSegment = (state, update) => updateSelectedShape(state, shape => (
     {...shape, segments: updateArrayItem(shape.segments, shape.selectedSegment, update)}));
 
+export const movePathSegment = (segment, dx, dy) => {
+    const newSeg = [segment[0], segment[1] + dx, segment[2] + dy];
+    if (segment.length > 3) {
+        newSeg.push(segment[3] + dx);
+        newSeg.push(segment[4] + dy);
+    }
+    if (segment.length > 5) {
+        newSeg.push(segment[5] + dx);
+        newSeg.push(segment[6] + dy);
+    }
+    return newSeg;
+}
+
+// svg
+const pathSvg = path => {
+    let svg = path.segments.map(s => {
+        switch (s[0]) {
+            case 'M':
+            case 'L':
+                return s.join(' ');
+            case 'Q':
+                return [s[0], s[3], s[4], s[1], s[2]].join(' ');
+            case 'C':
+                return [s[0], s[3], s[4], s[5], s[6], s[1], s[2]].join(' ');
+            default:
+                return '';
+        }}).join(' ');
+    if (path.closed) { svg += 'Z'; }
+    return svg;
+};
+
 export const svg  = shape => {
-    let base = shape.segments.map(s => s.join(' ')).join(' ');
+    let svg = '';
     switch (shape.type) {
         case 'path':
-            if (shape.closed) { base += 'Z'; }
+            svg = pathSvg(shape);        
             break;
         default:
             break;
     }
-    return base;
+    return svg;
 };
 
 // mode
