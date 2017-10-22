@@ -19,6 +19,7 @@ import { actions, modes } from './consts.js';
             { 
                 type: 'path',
                 selectedSegment: index,
+                selectedPoint: index, 
                 closed: bool,
                 fill: bool,
                 segments: [
@@ -40,11 +41,9 @@ export const createInitialState = () => ({
         'universal': {
             'g': actions.GRID_CYCLE_SIZE,
             'G': actions.GRID_CYCLE_SIZE_RV,
-            'Escape': actions.MODE_POP,
-            'ctrl-[': actions.MODE_POP,
         },
-        [modes.TOP_DEFAULT]: {
-            ' ': actions.MODE_PUSH_PATH_SELECT_SEGMENT,  // temporary, depends on a currently selected shape type
+        [modes.TOP]: {
+            ' ': actions.MODE_PUSH_PATH_SELECTED,  // temporary, depends on a currently selected shape type
             'p': actions.SHAPES_ADD_PATH,
             'x': actions.SHAPES_DELETE_SHAPE,
             'n': actions.SHAPES_CYCLE_SELECTION,
@@ -54,11 +53,13 @@ export const createInitialState = () => ({
             'k': actions.PATH_MOVE_UP,
             'j': actions.PATH_MOVE_DOWN,
         },
-        [modes.PATH_SELECT_SEGMENT]: {
-            //' ': actions.MODE_PUSH_PATH_SELECT_POINT,
+        [modes.PATH_SELECTED]: {
+            ' ': actions.MODE_PUSH_PATH_SEGMENT_SELECTED,
+            'Escape': actions.MODE_POP,
+            'ctrl-[': actions.MODE_POP,
             'f': actions.SHAPE_TOGGLE_FILL,
             't': actions.PATH_ADD_LINE,
-            'b': actions.PATH_ADD_BEZIER,
+            'q': actions.PATH_ADD_QUADRATIC_BEZIER,
             'c': actions.PATH_ADD_CUBIC_BEZIER,
             'i': actions.PATH_INSERT_POINT,
             'x': actions.PATH_DELETE_POINT,
@@ -74,16 +75,18 @@ export const createInitialState = () => ({
             'K': actions.POINT_MOVE_UP,
             'J': actions.POINT_MOVE_DOWN,
         },
-        [modes.PATH_SELECT_POINT]: {
-        },
-        [modes.PATH_EDIT_POINT]: {
+        [modes.PATH_SEGMENT_SELECTED]: {
+            'Escape': actions.MODE_POP_PATH_SEGMENT_SELECTED,
+            'ctrl-[': actions.MODE_POP_PATH_SEGMENT_SELECTED,
             'h': actions.POINT_MOVE_LEFT,
             'l': actions.POINT_MOVE_RIGHT,
             'k': actions.POINT_MOVE_UP,
             'j': actions.POINT_MOVE_DOWN,
+            'n': actions.POINT_CYCLE_SELECTION,
+            'N': actions.POINT_CYCLE_SELECTION_RV,
         }
     },
-    modes: [ modes.TOP_DEFAULT ],
+    modes: [ modes.TOP ],
     shapes: {
         selected: -1,
         data: [],
@@ -91,11 +94,14 @@ export const createInitialState = () => ({
 });
 
 // helper methods (TODO: move to a different .js file)
-const cycle = (array, cur, isReverse) => isReverse ? (cur == 0 ? array.length - 1 : cur - 1) : ((cur + 1) % array.length);
+const cycle = (arrayOrLen, cur, isReverse) => {
+    const len = arrayOrLen.length || arrayOrLen;  // incorrect result if array length is 0
+    return isReverse ? (cur === 0 ? len - 1 : cur - 1) : ((cur + 1) % len);
+}
 
 export const updateArrayItem = (array, index, update) => {
     const copy = [...array];
-    copy[index] = update(copy[index]);
+    copy[index] = update(copy[index]); // update function must create a new object if array holds non-primitive time
     return copy;
 }
     
@@ -133,27 +139,43 @@ export const curSegment = (state, callback) => curShape(state, shape => {
 });
 
 export const cyclePathSegment = (state, isReverse) => updateSelectedShape(state, shape => (
-    {...shape, selectedSegment: cycle(shape.segments, shape.selectedSegment, isReverse)}));
+    {...shape, selectedSegment: cycle(shape.segments, shape.selectedSegment, isReverse), selectedPoint: 0}));
+
+const getSelectedPoint = (curSelection, segment, isReverse) => {
+    const factor = segment[0] === 'C' ? 3 : (segment[0] === 'Q' ? 2 : 1);
+    return cycle(factor, curSelection, isReverse);
+}
+
+export const cyclePathPoints = (state, isReverse) => updateSelectedShape(state, shape => (
+    {...shape, selectedPoint: getSelectedPoint(shape.selectedPoint, shape.segments[shape.selectedSegment], isReverse)}));
 
 export const addPathSegment = (state, createNewSegment) => updateSelectedShape(state, shape => (
     {
         ...shape, 
         selectedSegment: shape.segments.length, 
+        selectedPoint: 0,
         segments: [...shape.segments, createNewSegment(shape.segments[shape.segments.length - 1])]
     }));
     
 export const updatePathSegment = (state, update) => updateSelectedShape(state, shape => (
     {...shape, segments: updateArrayItem(shape.segments, shape.selectedSegment, update)}));
 
-export const movePathSegment = (segment, dx, dy) => {
-    const newSeg = [segment[0], segment[1] + dx, segment[2] + dy];
-    if (segment.length > 3) {
-        newSeg.push(segment[3] + dx);
-        newSeg.push(segment[4] + dy);
+export const movePathSegment = (segment, selectedPoint, dx, dy) => {
+    const newSeg = [...segment];
+    const updatePoint1 = selectedPoint === 0;
+    const updatePoint2 = segment.length > 3 && (selectedPoint === 0 || selectedPoint === 1);
+    const updatePoint3 = segment.length > 5 && (selectedPoint === 0 || selectedPoint === 2);
+    if (updatePoint1) {
+        newSeg[1] += dx;
+        newSeg[2] += dy;
     }
-    if (segment.length > 5) {
-        newSeg.push(segment[5] + dx);
-        newSeg.push(segment[6] + dy);
+    if (updatePoint2) {
+        newSeg[3] += dx;
+        newSeg[4] += dy;
+    }
+    if (updatePoint3) {
+        newSeg[5] += dx;
+        newSeg[6] += dy;
     }
     return newSeg;
 }

@@ -4,20 +4,36 @@ import * as ReactRedux from 'react-redux';
 import { modes } from './consts.js';
 import * as St from './state.js';
 
+const getPointRadius = isLarge => isLarge ? 5 : 3;
 //------------------------------------------------------------------------------
 const Path = ({shape, selected, mode}) => {
     let pts = [];
-    if (selected && (mode === modes.PATH_SELECT_SEGMENT || mode === modes.PATH_EDIT_POINT)) {
+    const extraPts = [];
+    const isSegSelMode = mode === modes.PATH_SEGMENT_SELECTED;
+    if (selected && (mode === modes.PATH_SELECTED || isSegSelMode)) {
         pts = shape.segments.map((p, i) => {
             const x = p[1];
             const y = p[2];
-            const segmentSelected = shape.selectedSegment === i;
-            const radius = segmentSelected ? 5 : 3;
-            const className = 'point' + (segmentSelected && mode === modes.PATH_EDIT_POINT ? ' selected' : '');
-            return <circle className={className} cx={x} cy={y} r={radius} key={i}/>;
+            const segSelected = shape.selectedSegment === i;
+            let largePt = segSelected;
+            const className = ['point'];
+            if (segSelected && isSegSelMode) {
+                className.push('selected');
+                if (p[0] === 'Q' || p[0] === 'C') {
+                    largePt = shape.selectedPoint === 0;
+
+                    let radius = getPointRadius(shape.selectedPoint === 1);
+                    extraPts.push(<circle className={className.join(' ')} cx={p[3]} cy={p[4]} r={radius} key='ex1'/>);
+                    
+                    if (p[0] === 'C') {
+                        radius = getPointRadius(shape.selectedPoint === 2);
+                        extraPts.push(<circle className={className.join(' ')} cx={p[5]} cy={p[6]} r={radius} key='ex2'/>);
+                    }
+                }
+            }
+            return <circle className={className.join(' ')} cx={x} cy={y} r={getPointRadius(largePt)} key={i}/>;
         });
     }
-    //const path = segments.map(seg => seg.join(' ')).join(' ') + (closed ? 'Z' : '');
     const path = St.svg(shape);
     const classNames = [];
     if (selected) { classNames.push('selected'); }
@@ -25,8 +41,9 @@ const Path = ({shape, selected, mode}) => {
     if (shape.fill) { classNames.push('fill'); }
     return (
         <g>
-            <path className={classNames.join(' ')} d={path}/>;
+            <path className={classNames.join(' ')} d={path}/>
             {pts}
+            {extraPts}
         </g>);
 };
 

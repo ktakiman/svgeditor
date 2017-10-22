@@ -30,11 +30,17 @@ const pointReducer = (state, action) => {
         case actions.POINT_MOVE_RIGHT:
             const {isY, isIncrease} = translateMove(action.type);
             const unit = St.gridSize(state);
+            const selectedPoint = St.curShape(state).selectedPoint;
             return St.updatePathSegment(state, seg => St.movePathSegment(
                 seg,
+                selectedPoint,
                 isY ? 0 : snap(seg[1], unit, isIncrease) - seg[1], 
                 isY ? snap(seg[2], unit, isIncrease) - seg[2] : 0
             ));
+        case actions.POINT_CYCLE_SELECTION:
+            return St.cyclePathPoints(state, false);
+        case actions.POINT_CYCLE_SELECTION_RV:
+            return St.cyclePathPoints(state, false);
     }
 };
 
@@ -51,7 +57,7 @@ const pathReducer = (state, action) => {
             }));
         case actions.PATH_ADD_LINE:
             return St.addPathSegment(state, lastSeg => ['L', lastSeg[1] + 32, lastSeg[2]]);
-        case actions.PATH_ADD_BEZIER:
+        case actions.PATH_ADD_QUADRATIC_BEZIER:
             return St.addPathSegment(state, lastSeg => ['Q', lastSeg[1] + 32, lastSeg[2], lastSeg[1], lastSeg[2] + 32]);
         case actions.PATH_ADD_CUBIC_BEZIER:
             return St.addPathSegment(state, lastSeg => ['C', 
@@ -101,7 +107,7 @@ const pathReducer = (state, action) => {
             const diff = vNew - vPrev;
             return St.updateSelectedShape(state, path => ({
                 ...path, 
-                segments: path.segments.map(seg => St.movePathSegment(seg, isY ? 0 : diff, isY ? diff : 0))
+                segments: path.segments.map(seg => St.movePathSegment(seg, 0, isY ? 0 : diff, isY ? diff : 0))
             }));
 
         default:
@@ -158,15 +164,19 @@ const modeReducer = (state, action) => {
     switch (action.type) {
         case actions.MODE_POP:
             return St.popMode(state);
-        case actions.MODE_PUSH_PATH_SELECT_SEGMENT:
-            return St.pushMode(state, modes.PATH_SELECT_SEGMENT);
-        case actions.MODE_PUSH_PATH_SELECT_POINT:
-            const ptType = St.curSegment(state)[0];
-            const newMode = ptType === 'M' || ptType === 'L' ? modes.PATH_EDIT_POINT : modes.PATH_SELECT_POINT;
-            return St.pushMode(state, newMode);
+        case actions.MODE_PUSH_PATH_SELECTED:
+            if (state.shapes.selected >= 0) {
+                return St.pushMode(state, modes.PATH_SELECTED);
+            }
+            break;
+        case actions.MODE_PUSH_PATH_SEGMENT_SELECTED:
+            return St.pushMode(state, modes.PATH_SEGMENT_SELECTED);
+        case actions.MODE_POP_PATH_SEGMENT_SELECTED:
+            return St.popMode(St.updateSelectedShape(state, shape => ({...shape, selectedPoint: 0})));
         default:
-            return state;
+            break;
     }
+    return state;
 };
 
 const mapReducers = [
