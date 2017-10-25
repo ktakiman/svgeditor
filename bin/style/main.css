@@ -11,7 +11,9 @@ circle.point.selected { fill: orangered; }
 .grid { stroke: white; stroke-dasharray: 1, 1}
 
 .svg-container { float: left; }
+
 .display { margin-left: 810px; vertical-align: top; }
+.display .filename { font-style: italic; }
 .display .point { font-size: smaller; white-space: nowrap; display:inline-block; }
 .display .point.selected { font-weight: bold; color: #ff5733; } 
 .display .point:not(:last-child) { margin-right: 10px; }

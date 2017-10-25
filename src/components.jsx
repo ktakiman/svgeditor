@@ -120,7 +120,7 @@ const addKeyMapDOM = (map, array, keyPrefix) => {
     )));
 };
 
-let Display = ({mode, selectedShape, keyMapping}) => {
+let Display = ({filename, persistId, mode, selectedShape, keyMapping}) => {
     const seg = [];
     if (selectedShape) {
         seg.push(<div key='type'>{'TYPE: ' + selectedShape.type}</div>);
@@ -142,6 +142,7 @@ let Display = ({mode, selectedShape, keyMapping}) => {
     
     return (
         <div className='display'>
+            <h3 className='filename'>{filename + " (" + persistId + ")"}</h3>
             <h3>{mode}</h3>
             {seg}
             <h3>Keyboard Mapping</h3>
@@ -153,7 +154,7 @@ let Display = ({mode, selectedShape, keyMapping}) => {
 };
 
 Display = ReactRedux.connect(
-    state => ({ mode: St.curMode(state), selectedShape: St.curShape(state), keyMapping: state.keyMapping}),
+    state => ({ filename: state.filename, persistId: state.persistId, mode: St.curMode(state), selectedShape: St.curShape(state), keyMapping: state.keyMapping}),
     dispatch => ({
     })
 )(Display);

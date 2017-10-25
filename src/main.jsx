@@ -5,22 +5,55 @@ import * as Redux from 'redux';
 import * as ReactRedux from 'react-redux';
 
 import { mainReducer } from './reducers.js';
-//import reducers from './reducers.js';
 import { actions, modes } from './consts.js';
 
 import * as St from './state.js';
 
 import { SvgEditor } from './components.jsx';
 
+const persistKey = 'svg-editor-data';
+
+//----------------------------------------------------------------------------------------------------
+const generateId = () => {
+    const temp = new Uint32Array(1);
+    window.crypto.getRandomValues(temp);
+    return "ID" + temp[0];
+};
+
+let persisted = JSON.parse(localStorage[persistKey] || "{}");
+
 //----------------------------------------------------------------------------------------------------
 const logger = store => next => action => {
     next(action);
     console.log(action);
-    console.log(store.getState()); 
+
+    const newState = store.getState();
+    console.log(newState); 
+    
+    persisted[newState.persistId] = newState.shapes;
+    localStorage[persistKey] = JSON.stringify(persisted); 
 }
 
 const middleware = Redux.applyMiddleware(logger);
-const state = St.createInitialState();
+
+const defaultState = St.createInitialState();
+
+let state;
+const id = Object.keys(persisted).find(k => k.indexOf("ID") === 0);
+
+if (id) {
+    const shapes = persisted[id];
+    state = { 
+        ...defaultState,
+        shapes: shapes,
+        persistId: id
+    };
+} else {
+    state = {
+        ...defaultState,
+        persistId: generateId()
+    };
+}
 
 const store = Redux.createStore(mainReducer, state, middleware);
 

@@ -13,7 +13,9 @@ import { actions, modes } from './consts.js';
         mode1: { key1: action1, key2: action2 },
         mode2: { key1: action1, key2: action2 },
     },
+    persistId: number,
     shapes: {
+        name: 'name',
         selected: index
         data: [
             { 
@@ -87,7 +89,9 @@ export const createInitialState = () => ({
         }
     },
     modes: [ modes.TOP ],
+    persistId: 0,
     shapes: {
+        name: 'untitiled',
         selected: -1,
         data: [],
     },
