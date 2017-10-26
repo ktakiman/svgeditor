@@ -1,5 +1,8 @@
 body { font-family: consola, monospace; }
 svg { background-color: #e0e0d0; }
+
+input { font-family: inherit; font-size: inherit; }
+
 path { stroke: navy; fill: none; }
 path.selected { storoke: navy; stroke-width: 3; }
 path.fill { stroke: none; fill: #8282b9; }
@@ -21,3 +24,8 @@ circle.point.selected { fill: orangered; }
 .display .keyboard-mapping { font-size: 75%; }
 .display .keyboard-mapping .col-one { padding-right: 10px; }
 
+.dlg-overlay { position: fixed; height: 100%; width: 100%; top: 0; left: 0; z-index: 1; background-color: rgba(0, 0, 0, 0.8)}
+.dlg { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; background-color: white; padding: 1em; border-radius: 5px; }
+
+.dlg h3 { margin-top: 0px; }
+.dlg .edit-name { min-width: 20em; }

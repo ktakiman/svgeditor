@@ -49,10 +49,7 @@ if (id) {
         persistId: id
     };
 } else {
-    state = {
-        ...defaultState,
-        persistId: generateId()
-    };
+    state = defaultState;
 }
 
 const store = Redux.createStore(mainReducer, state, middleware);

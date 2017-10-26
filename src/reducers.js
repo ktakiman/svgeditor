@@ -173,11 +173,24 @@ const modeReducer = (state, action) => {
             return St.pushMode(state, modes.PATH_SEGMENT_SELECTED);
         case actions.MODE_POP_PATH_SEGMENT_SELECTED:
             return St.popMode(St.updateSelectedShape(state, shape => ({...shape, selectedPoint: 0})));
+        case actions.MODE_PUSH_RENAME_DRAWING:
+            return St.pushMode(state, modes.RENAME_DRAWING);
         default:
             break;
     }
     return state;
 };
+
+const drawingReducer = (state, action) => {
+    switch (action.type) {
+        case actions.DRAWING_SET_NAME:
+            return {...state, shapes: {...state.shapes, name: action.name }};
+        default:
+            break;
+    }
+
+    return state;
+}
 
 const mapReducers = [
     { prefix: "PATH", reducer: pathReducer },
@@ -185,7 +198,8 @@ const mapReducers = [
     { prefix: "SHAPE", reducer: shapeReducer },
     { prefix: "GRID", reducer: gridReducer },
     { prefix: "MODE", reducer: modeReducer },
-    { prefix: "POINT", reducer: pointReducer }
+    { prefix: "POINT", reducer: pointReducer },
+    { prefix: "DRAWING", reducer: drawingReducer }
 ];
 
 export const mainReducer = (state, action) => {

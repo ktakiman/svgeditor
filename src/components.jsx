@@ -1,7 +1,7 @@
 import React from 'react';
 import * as ReactRedux from 'react-redux';
 
-import { modes } from './consts.js';
+import { modes, actions } from './consts.js';
 import * as St from './state.js';
 
 const getPointRadius = isLarge => isLarge ? 5 : 3;
@@ -120,7 +120,7 @@ const addKeyMapDOM = (map, array, keyPrefix) => {
     )));
 };
 
-let Display = ({filename, persistId, mode, selectedShape, keyMapping}) => {
+let Display = ({name, persistId, mode, selectedShape, keyMapping}) => {
     const seg = [];
     if (selectedShape) {
         seg.push(<div key='type'>{'TYPE: ' + selectedShape.type}</div>);
@@ -142,7 +142,7 @@ let Display = ({filename, persistId, mode, selectedShape, keyMapping}) => {
     
     return (
         <div className='display'>
-            <h3 className='filename'>{filename + " (" + persistId + ")"}</h3>
+            <h3 className='filename'>{name + " (" + persistId + ")"}</h3>
             <h3>{mode}</h3>
             {seg}
             <h3>Keyboard Mapping</h3>
@@ -154,10 +154,31 @@ let Display = ({filename, persistId, mode, selectedShape, keyMapping}) => {
 };
 
 Display = ReactRedux.connect(
-    state => ({ filename: state.filename, persistId: state.persistId, mode: St.curMode(state), selectedShape: St.curShape(state), keyMapping: state.keyMapping}),
+    state => ({ name: state.shapes.name, persistId: state.persistId, mode: St.curMode(state), selectedShape: St.curShape(state), keyMapping: state.keyMapping}),
     dispatch => ({
     })
 )(Display);
+
+
+let RenameDrawingDialog = ({mode, name, setName}) => {
+    if (mode === modes.RENAME_DRAWING) {
+        return (
+            <div>
+                <div className='dlg-overlay'></div>;
+                <div className='dlg'>
+                    <h3>Rename to:</h3>
+                    <input className='edit-name' value={name} onChange={setName}/>
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
+RenameDrawingDialog = ReactRedux.connect(
+    state => ({ mode: St.curMode(state), name: state.shapes.name }),
+    dispatch => ({ setName: evt => dispatch({ type: actions.DRAWING_SET_NAME, name: evt.target.value }) })
+)(RenameDrawingDialog);
 
 //----------------------------------------------------------------------------------------------------
 export const SvgEditor = ({state}) => {
@@ -165,6 +186,7 @@ export const SvgEditor = ({state}) => {
         <div>
             <div className='svg-container'><SvgContainer/></div>
             <Display/>
+            <RenameDrawingDialog/>
         </div>
     );
 };

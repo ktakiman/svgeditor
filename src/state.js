@@ -41,11 +41,12 @@ export const createInitialState = () => ({
     },
     keyMapping: {
         'universal': {
-            'g': actions.GRID_CYCLE_SIZE,
-            'G': actions.GRID_CYCLE_SIZE_RV,
         },
         [modes.TOP]: {
+            'g': actions.GRID_CYCLE_SIZE,
+            'G': actions.GRID_CYCLE_SIZE_RV,
             ' ': actions.MODE_PUSH_PATH_SELECTED,  // temporary, depends on a currently selected shape type
+            'R': actions.MODE_PUSH_RENAME_DRAWING,
             'p': actions.SHAPES_ADD_PATH,
             'x': actions.SHAPES_DELETE_SHAPE,
             'n': actions.SHAPES_CYCLE_SELECTION,
@@ -56,6 +57,8 @@ export const createInitialState = () => ({
             'j': actions.PATH_MOVE_DOWN,
         },
         [modes.PATH_SELECTED]: {
+            'g': actions.GRID_CYCLE_SIZE,
+            'G': actions.GRID_CYCLE_SIZE_RV,
             ' ': actions.MODE_PUSH_PATH_SEGMENT_SELECTED,
             'Escape': actions.MODE_POP,
             'ctrl-[': actions.MODE_POP,
@@ -78,6 +81,8 @@ export const createInitialState = () => ({
             'J': actions.POINT_MOVE_DOWN,
         },
         [modes.PATH_SEGMENT_SELECTED]: {
+            'g': actions.GRID_CYCLE_SIZE,
+            'G': actions.GRID_CYCLE_SIZE_RV,
             'Escape': actions.MODE_POP_PATH_SEGMENT_SELECTED,
             'ctrl-[': actions.MODE_POP_PATH_SEGMENT_SELECTED,
             'h': actions.POINT_MOVE_LEFT,
@@ -86,10 +91,15 @@ export const createInitialState = () => ({
             'j': actions.POINT_MOVE_DOWN,
             'n': actions.POINT_CYCLE_SELECTION,
             'N': actions.POINT_CYCLE_SELECTION_RV,
-        }
+        },
+        [modes.RENAME_DRAWING]: {
+            'Escape': actions.MODE_POP,
+            'ctrl-[': actions.MODE_POP,
+            'Enter': actions.MODE_POP,
+        },
     },
     modes: [ modes.TOP ],
-    persistId: 0,
+    persistId: generateId(),
     shapes: {
         name: 'untitiled',
         selected: -1,
@@ -97,7 +107,15 @@ export const createInitialState = () => ({
     },
 });
 
+
+export const generateId = () => {
+    const temp = new Uint32Array(1);
+    window.crypto.getRandomValues(temp);
+    return "ID" + temp[0];
+};
+
 // helper methods (TODO: move to a different .js file)
+
 const cycle = (arrayOrLen, cur, isReverse) => {
     const len = arrayOrLen.length || arrayOrLen;  // incorrect result if array length is 0
     return isReverse ? (cur === 0 ? len - 1 : cur - 1) : ((cur + 1) % len);
