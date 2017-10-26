@@ -1,5 +1,6 @@
 import { actions, modes } from './consts.js'; 
 import * as St from './state.js';
+import * as Psst from './persist.js';
 
 const snap = (cur, unit, increase) => {
     unit = unit || 1;
@@ -181,12 +182,25 @@ const modeReducer = (state, action) => {
     return state;
 };
 
+const cycleDrawing = (state, isReverse) => {
+    const curIndex = state.drawings.findIndex(d => d.persistId === state.persistId);
+    const newIndex = St.cycle(state.drawings.length, curIndex, isReverse);
+    const newId = state.drawings[newIndex].persistId;
+
+    const newShapes = Psst.loadDrawing(newId);
+    return {...state, persistId: newId, shapes: newShapes };
+}
 const drawingReducer = (state, action) => {
     switch (action.type) {
         case actions.DRAWING_SET_NAME:
             return {...state, shapes: {...state.shapes, name: action.name }};
         case actions.DRAWING_NEW:
-            return St.createInitialState();
+            var newState = St.createInitialState();
+            return {...state, drawings: [...state.drawings, ...newState.drawings], persistId: newState.persistId, shapes: newState.shapes};
+        case actions.DRAWING_CYCLE_SELECTION:
+            return cycleDrawing(state, false);
+        case actions.DRAWING_CYCLE_SELECTION_RV:
+            return cycleDrawing(state, true);
         default:
             break;
     }

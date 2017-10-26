@@ -13,6 +13,7 @@ import { actions, modes } from './consts.js';
         mode1: { key1: action1, key2: action2 },
         mode2: { key1: action1, key2: action2 },
     },
+    drawings: [{persistId: ..., name: ...}],
     persistId: number,
     shapes: {
         name: 'name',
@@ -33,80 +34,87 @@ import { actions, modes } from './consts.js';
 } 
 */
 
-export const createInitialState = () => ({ 
-    containerSize: [800, 500], 
-    grid: { 
-        sizePresets: [0, 8, 16, 32],
-        sizeIndex: 2
-    },
-    keyMapping: {
-        'universal': {
+export const createInitialState = () => {
+    const persistId = generateId(); 
+    const name = 'untitled';
+    return { 
+        containerSize: [800, 500], 
+        grid: { 
+            sizePresets: [0, 8, 16, 32],
+            sizeIndex: 2
         },
-        [modes.TOP]: {
-            'g': actions.GRID_CYCLE_SIZE,
-            'G': actions.GRID_CYCLE_SIZE_RV,
-            ' ': actions.MODE_PUSH_PATH_SELECTED,  // temporary, depends on a currently selected shape type
-            'E': actions.DRAWING_NEW,
-            'R': actions.MODE_PUSH_RENAME_DRAWING,
-            'p': actions.SHAPES_ADD_PATH,
-            'x': actions.SHAPES_DELETE_SHAPE,
-            'n': actions.SHAPES_CYCLE_SELECTION,
-            'N': actions.SHAPES_CYCLE_SELECTION_RV,
-            'h': actions.PATH_MOVE_LEFT,
-            'l': actions.PATH_MOVE_RIGHT,
-            'k': actions.PATH_MOVE_UP,
-            'j': actions.PATH_MOVE_DOWN,
+        keyMapping: {
+            'universal': {
+            },
+            [modes.TOP]: {
+                'g': actions.GRID_CYCLE_SIZE,
+                'G': actions.GRID_CYCLE_SIZE_RV,
+                ' ': actions.MODE_PUSH_PATH_SELECTED,  // temporary, depends on a currently selected shape type
+                'E': actions.DRAWING_NEW,
+                'd': actions.DRAWING_CYCLE_SELECTION,
+                'D': actions.DRAWING_CYCLE_SELECTION_RV,
+                'R': actions.MODE_PUSH_RENAME_DRAWING,
+                'p': actions.SHAPES_ADD_PATH,
+                'x': actions.SHAPES_DELETE_SHAPE,
+                'n': actions.SHAPES_CYCLE_SELECTION,
+                'N': actions.SHAPES_CYCLE_SELECTION_RV,
+                'h': actions.PATH_MOVE_LEFT,
+                'l': actions.PATH_MOVE_RIGHT,
+                'k': actions.PATH_MOVE_UP,
+                'j': actions.PATH_MOVE_DOWN,
+            },
+            [modes.PATH_SELECTED]: {
+                'g': actions.GRID_CYCLE_SIZE,
+                'G': actions.GRID_CYCLE_SIZE_RV,
+                ' ': actions.MODE_PUSH_PATH_SEGMENT_SELECTED,
+                'Escape': actions.MODE_POP,
+                'ctrl-[': actions.MODE_POP,
+                'f': actions.SHAPE_TOGGLE_FILL,
+                't': actions.PATH_ADD_LINE,
+                'q': actions.PATH_ADD_QUADRATIC_BEZIER,
+                'c': actions.PATH_ADD_CUBIC_BEZIER,
+                'i': actions.PATH_INSERT_POINT,
+                'x': actions.PATH_DELETE_POINT,
+                'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
+                'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
+                'h': actions.PATH_MOVE_LEFT,
+                'l': actions.PATH_MOVE_RIGHT,
+                'k': actions.PATH_MOVE_UP,
+                'j': actions.PATH_MOVE_DOWN,
+                's': actions.PATH_TOGGLE_CLOSE,
+                'H': actions.POINT_MOVE_LEFT,
+                'L': actions.POINT_MOVE_RIGHT,
+                'K': actions.POINT_MOVE_UP,
+                'J': actions.POINT_MOVE_DOWN,
+            },
+            [modes.PATH_SEGMENT_SELECTED]: {
+                'g': actions.GRID_CYCLE_SIZE,
+                'G': actions.GRID_CYCLE_SIZE_RV,
+                'Escape': actions.MODE_POP_PATH_SEGMENT_SELECTED,
+                'ctrl-[': actions.MODE_POP_PATH_SEGMENT_SELECTED,
+                'h': actions.POINT_MOVE_LEFT,
+                'l': actions.POINT_MOVE_RIGHT,
+                'k': actions.POINT_MOVE_UP,
+                'j': actions.POINT_MOVE_DOWN,
+                'n': actions.POINT_CYCLE_SELECTION,
+                'N': actions.POINT_CYCLE_SELECTION_RV,
+            },
+            [modes.RENAME_DRAWING]: {
+                'Escape': actions.MODE_POP,
+                'ctrl-[': actions.MODE_POP,
+                'Enter': actions.MODE_POP,
+            },
         },
-        [modes.PATH_SELECTED]: {
-            'g': actions.GRID_CYCLE_SIZE,
-            'G': actions.GRID_CYCLE_SIZE_RV,
-            ' ': actions.MODE_PUSH_PATH_SEGMENT_SELECTED,
-            'Escape': actions.MODE_POP,
-            'ctrl-[': actions.MODE_POP,
-            'f': actions.SHAPE_TOGGLE_FILL,
-            't': actions.PATH_ADD_LINE,
-            'q': actions.PATH_ADD_QUADRATIC_BEZIER,
-            'c': actions.PATH_ADD_CUBIC_BEZIER,
-            'i': actions.PATH_INSERT_POINT,
-            'x': actions.PATH_DELETE_POINT,
-            'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
-            'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
-            'h': actions.PATH_MOVE_LEFT,
-            'l': actions.PATH_MOVE_RIGHT,
-            'k': actions.PATH_MOVE_UP,
-            'j': actions.PATH_MOVE_DOWN,
-            's': actions.PATH_TOGGLE_CLOSE,
-            'H': actions.POINT_MOVE_LEFT,
-            'L': actions.POINT_MOVE_RIGHT,
-            'K': actions.POINT_MOVE_UP,
-            'J': actions.POINT_MOVE_DOWN,
+        modes: [ modes.TOP ],
+        drawings: [{persistId: persistId, name: name}],
+        persistId: persistId,
+        shapes: {
+            name: name,
+            selected: -1,
+            data: [],
         },
-        [modes.PATH_SEGMENT_SELECTED]: {
-            'g': actions.GRID_CYCLE_SIZE,
-            'G': actions.GRID_CYCLE_SIZE_RV,
-            'Escape': actions.MODE_POP_PATH_SEGMENT_SELECTED,
-            'ctrl-[': actions.MODE_POP_PATH_SEGMENT_SELECTED,
-            'h': actions.POINT_MOVE_LEFT,
-            'l': actions.POINT_MOVE_RIGHT,
-            'k': actions.POINT_MOVE_UP,
-            'j': actions.POINT_MOVE_DOWN,
-            'n': actions.POINT_CYCLE_SELECTION,
-            'N': actions.POINT_CYCLE_SELECTION_RV,
-        },
-        [modes.RENAME_DRAWING]: {
-            'Escape': actions.MODE_POP,
-            'ctrl-[': actions.MODE_POP,
-            'Enter': actions.MODE_POP,
-        },
-    },
-    modes: [ modes.TOP ],
-    persistId: generateId(),
-    shapes: {
-        name: 'untitiled',
-        selected: -1,
-        data: [],
-    },
-});
+    };
+};
 
 
 export const generateId = () => {
@@ -117,7 +125,7 @@ export const generateId = () => {
 
 // helper methods (TODO: move to a different .js file)
 
-const cycle = (arrayOrLen, cur, isReverse) => {
+export const cycle = (arrayOrLen, cur, isReverse) => {
     const len = arrayOrLen.length || arrayOrLen;  // incorrect result if array length is 0
     return isReverse ? (cur === 0 ? len - 1 : cur - 1) : ((cur + 1) % len);
 }

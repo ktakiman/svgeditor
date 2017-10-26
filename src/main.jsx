@@ -39,14 +39,16 @@ const middleware = Redux.applyMiddleware(logger);
 const defaultState = St.createInitialState();
 
 let state;
-const id = Psst.listDrawings()[0];
+const drawings = Psst.listDrawings();
+const id = drawings[0].persistId;
 
 if (id) {
     const shapes = Psst.loadDrawing(id);
     state = { 
         ...defaultState,
-        shapes: shapes,
-        persistId: id
+        drawings: drawings,
+        persistId: id,
+        shapes: shapes
     };
 } else {
     state = defaultState;

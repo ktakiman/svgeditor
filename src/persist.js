@@ -11,8 +11,7 @@ if (json) {
 
 persisted = persisted || {};
 
-
-export const listDrawings = () => Object.keys(persisted);
+export const listDrawings = () => Object.keys(persisted).map(id => ({ persistId: id, name: persisted[id].name }));
 export const loadDrawing = id => persisted[id];
 export const saveDrawing = state => {
     persisted[state.persistId] = state.shapes;
