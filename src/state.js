@@ -46,6 +46,7 @@ export const createInitialState = () => ({
             'g': actions.GRID_CYCLE_SIZE,
             'G': actions.GRID_CYCLE_SIZE_RV,
             ' ': actions.MODE_PUSH_PATH_SELECTED,  // temporary, depends on a currently selected shape type
+            'E': actions.DRAWING_NEW,
             'R': actions.MODE_PUSH_RENAME_DRAWING,
             'p': actions.SHAPES_ADD_PATH,
             'x': actions.SHAPES_DELETE_SHAPE,

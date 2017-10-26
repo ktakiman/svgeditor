@@ -185,6 +185,8 @@ const drawingReducer = (state, action) => {
     switch (action.type) {
         case actions.DRAWING_SET_NAME:
             return {...state, shapes: {...state.shapes, name: action.name }};
+        case actions.DRAWING_NEW:
+            return St.createInitialState();
         default:
             break;
     }

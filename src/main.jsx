@@ -8,6 +8,7 @@ import { mainReducer } from './reducers.js';
 import { actions, modes } from './consts.js';
 
 import * as St from './state.js';
+import * as Psst from './persist.js';
 
 import { SvgEditor } from './components.jsx';
 
@@ -30,8 +31,7 @@ const logger = store => next => action => {
     const newState = store.getState();
     console.log(newState); 
     
-    persisted[newState.persistId] = newState.shapes;
-    localStorage[persistKey] = JSON.stringify(persisted); 
+    Psst.saveDrawing(newState);
 }
 
 const middleware = Redux.applyMiddleware(logger);
@@ -39,10 +39,10 @@ const middleware = Redux.applyMiddleware(logger);
 const defaultState = St.createInitialState();
 
 let state;
-const id = Object.keys(persisted).find(k => k.indexOf("ID") === 0);
+const id = Psst.listDrawings()[0];
 
 if (id) {
-    const shapes = persisted[id];
+    const shapes = Psst.loadDrawing(id);
     state = { 
         ...defaultState,
         shapes: shapes,
