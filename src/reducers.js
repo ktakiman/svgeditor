@@ -106,11 +106,7 @@ const pathReducer = (state, action) => {
             const vPrev = curSeg[isY ? 2 : 1];
             const vNew = snap(vPrev, St.gridSize(state), isIncrease);
             const diff = vNew - vPrev;
-            return St.updateSelectedShape(state, path => ({
-                ...path, 
-                segments: path.segments.map(seg => St.movePathSegment(seg, 0, isY ? 0 : diff, isY ? diff : 0))
-            }));
-
+            return St.updateSelectedShape(state, shape => St.moveShape(shape, isY ? 0 : diff, isY ? diff : 0));
         default:
             return state;
     }
@@ -141,6 +137,12 @@ const shapesReducer = (state, action) => {
                 closed: false,
                 fill: false,
                 segments: [['M', pos, pos], ['L', pos + 32, pos]]});
+        case actions.SHAPES_DUPLICATE_SHAPE:
+            return St.updateShapes(state, shapes => ({
+                ...shapes,
+                selected: shapes.data.length,
+                data: [...shapes.data, {...St.moveShape(St.curShape(state), 10, 10)}]
+            }));
         case actions.SHAPES_DELETE_SHAPE:
             return St.updateShapes(state, shapes => ({
                 ...shapes,

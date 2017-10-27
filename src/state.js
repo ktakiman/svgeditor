@@ -51,10 +51,11 @@ export const createInitialState = () => {
                 'G': actions.GRID_CYCLE_SIZE_RV,
                 ' ': actions.MODE_PUSH_PATH_SELECTED,  // temporary, depends on a currently selected shape type
                 'E': actions.DRAWING_NEW,
-                'd': actions.DRAWING_CYCLE_SELECTION,
-                'D': actions.DRAWING_CYCLE_SELECTION_RV,
+                'y': actions.DRAWING_CYCLE_SELECTION,
+                'Y': actions.DRAWING_CYCLE_SELECTION_RV,
                 'R': actions.MODE_PUSH_RENAME_DRAWING,
                 'p': actions.SHAPES_ADD_PATH,
+                'd': actions.SHAPES_DUPLICATE_SHAPE,
                 'x': actions.SHAPES_DELETE_SHAPE,
                 'n': actions.SHAPES_CYCLE_SELECTION,
                 'N': actions.SHAPES_CYCLE_SELECTION_RV,
@@ -209,7 +210,19 @@ export const movePathSegment = (segment, selectedPoint, dx, dy) => {
         newSeg[6] += dy;
     }
     return newSeg;
-}
+};
+
+export const moveShape = (shape, dx, dy) => {
+    switch (shape.type) {
+        case 'path':
+            return {
+                ...shape, 
+                segments: shape.segments.map(seg => movePathSegment(seg, 0, dx, dy))
+            };
+        default:
+            break;
+    }
+};
 
 // svg
 const pathSvg = path => {
