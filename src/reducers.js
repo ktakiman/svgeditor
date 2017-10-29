@@ -178,6 +178,10 @@ const modeReducer = (state, action) => {
             return St.popMode(St.updateSelectedShape(state, shape => ({...shape, selectedPoint: 0})));
         case actions.MODE_PUSH_RENAME_DRAWING:
             return St.pushMode(state, modes.RENAME_DRAWING);
+        case actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY:
+            return St.pushMode(state, modes.CONFIG_IMAGE_OVERLAY);
+        case actions.MODE_PUSH_SET_IMAGE_URL:
+            return St.pushMode(state, modes.SET_IMAGE_URL);
         default:
             break;
     }
@@ -191,7 +195,8 @@ const cycleDrawing = (state, isReverse) => {
 
     const newShapes = Psst.loadDrawing(newId);
     return {...state, persistId: newId, shapes: newShapes };
-}
+};
+
 const drawingReducer = (state, action) => {
     switch (action.type) {
         case actions.DRAWING_SET_NAME:
@@ -208,7 +213,46 @@ const drawingReducer = (state, action) => {
     }
 
     return state;
-}
+};
+
+const imageOverlayReducer = (state, action) => {
+    switch (action.type) {
+        case actions.IMAGE_OVERLAY_SET_URL:
+            return St.updateImageOverlay(state, overlay => ({...overlay, url: action.url}));
+        case actions.IMAGE_OVERLAY_ENLARGE:
+        case actions.IMAGE_OVERLAY_SHRINK:
+        {
+            const delta = action.type === actions.IMAGE_OVERLAY_ENLARGE ? 0.1 : -0.1;
+            return St.updateImageOverlay(state, overlay => ({
+                ...overlay, 
+                scale: St.increment(overlay.scale, delta, 0.1, 10.0)
+            }));
+        }
+        case actions.IMAGE_OVERLAY_MORE_OPAQUE:
+        case actions.IMAGE_OVERLAY_LESS_OPAQUE:
+        {
+            const delta = action.type === actions.IMAGE_OVERLAY_MORE_OPAQUE ? 0.1 : -0.1;
+            return St.updateImageOverlay(state, overlay => ({
+                ...overlay,
+                opacity: St.increment(overlay.opacity, delta, 0.1, 1.0)
+            }));
+        }
+        case actions.IMAGE_OVERLAY_MOVE_LEFT:
+        case actions.IMAGE_OVERLAY_MOVE_RIGHT:
+        case actions.IMAGE_OVERLAY_MOVE_UP:
+        case actions.IMAGE_OVERLAY_MOVE_DOWN:
+            const {isY, isIncrease} = translateMove(action.type);
+            return St.updateImageOverlay(state, overlay => {
+                const vPrev = (isY ? overlay.top : overlay.left) || 0;
+                const vNew = snap(vPrev, St.gridSize(state), isIncrease);
+                return {...overlay, left: isY ? overlay.left : vNew, top: isY ? vNew : overlay.top};
+            });
+        default:
+            break;
+    }
+
+    return state;
+};
 
 const mapReducers = [
     { prefix: "PATH", reducer: pathReducer },
@@ -217,7 +261,8 @@ const mapReducers = [
     { prefix: "GRID", reducer: gridReducer },
     { prefix: "MODE", reducer: modeReducer },
     { prefix: "POINT", reducer: pointReducer },
-    { prefix: "DRAWING", reducer: drawingReducer }
+    { prefix: "DRAWING", reducer: drawingReducer },
+    { prefix: "IMAGE_OVERLAY", reducer: imageOverlayReducer },
 ];
 
 export const mainReducer = (state, action) => {

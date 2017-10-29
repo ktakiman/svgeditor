@@ -15,15 +15,6 @@ import { SvgEditor } from './components.jsx';
 const persistKey = 'svg-editor-data';
 
 //----------------------------------------------------------------------------------------------------
-const generateId = () => {
-    const temp = new Uint32Array(1);
-    window.crypto.getRandomValues(temp);
-    return "ID" + temp[0];
-};
-
-let persisted = JSON.parse(localStorage[persistKey] || "{}");
-
-//----------------------------------------------------------------------------------------------------
 const logger = store => next => action => {
     next(action);
     console.log(action);
@@ -39,14 +30,14 @@ const middleware = Redux.applyMiddleware(logger);
 const defaultState = St.createInitialState();
 
 let state;
-const drawings = Psst.listDrawings();
-const id = drawings[0].persistId;
+const persisted = Psst.listDrawings();
 
-if (id) {
+if (persisted.length > 0) {
+    const id = persisted[0].persistId;
     const shapes = Psst.loadDrawing(id);
     state = { 
         ...defaultState,
-        drawings: drawings,
+        drawings: persisted,
         persistId: id,
         shapes: shapes
     };

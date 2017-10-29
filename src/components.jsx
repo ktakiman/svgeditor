@@ -77,6 +77,13 @@ const Grid = ({size, width, height}) => {
     return <g>{grid}</g>;
 }
 
+const Overlay = ({overlay, containerWidth, containerHeight}) => {
+    if (overlay.url) {
+        return <image href={overlay.url} x={overlay.left} y={overlay.top} width={containerWidth * overlay.scale} height={containerHeight * overlay.scale} style={{opacity: overlay.opacity}}/>;
+    }
+
+    return null;
+}
 
 //----------------------------------------------------------------------------------------------------
 let SvgContainer = ({containerSize, shapes, gridSize, mode}) => {
@@ -87,6 +94,7 @@ let SvgContainer = ({containerSize, shapes, gridSize, mode}) => {
         <svg width={width} height={height}>
             {gridLines}
             <Shapes shapes={shapes} selected={shapes.selected} mode={mode}/>
+            <Overlay overlay={shapes.imageOverlay} containerWidth={width} containerHeight={height}/>
         </svg>
     );
 };
@@ -160,33 +168,55 @@ Display = ReactRedux.connect(
 )(Display);
 
 
-let RenameDrawingDialog = ({mode, name, setName}) => {
-    if (mode === modes.RENAME_DRAWING) {
+let Dialog = ({mode, name, imgUrl, setName, setImgUrl}) => {
+    let header, value, callback;
+    switch (mode) {
+        case modes.RENAME_DRAWING:
+            header = 'Name:';
+            value = name;
+            callback = setName;
+            break;
+        case modes.SET_IMAGE_URL:
+            header = 'URL:';
+            value = imgUrl;
+            callback = setImgUrl;
+            break;
+        default:
+            break;
+    }
+
+    if (header) {
         return (
             <div>
                 <div className='dlg-overlay'></div>;
                 <div className='dlg'>
-                    <h3>Rename to:</h3>
-                    <input className='edit-name' value={name} onChange={setName}/>
+                    <h3>{header}</h3>
+                    <input className='editbox' value={value} onChange={callback}/>
                 </div>
             </div>
         );
     }
+
     return null;
 };
 
-RenameDrawingDialog = ReactRedux.connect(
-    state => ({ mode: St.curMode(state), name: state.shapes.name }),
-    dispatch => ({ setName: evt => dispatch({ type: actions.DRAWING_SET_NAME, name: evt.target.value }) })
-)(RenameDrawingDialog);
+Dialog = ReactRedux.connect(
+    state => ({ mode: St.curMode(state), name: state.shapes.name, imgUrl: state.shapes.imageOverlay.url }),
+    dispatch => ({ 
+        setName: evt => dispatch({ type: actions.DRAWING_SET_NAME, name: evt.target.value }),
+        setImgUrl: evt => dispatch({ type: actions.IMAGE_OVERLAY_SET_URL, url: evt.target.value }),
+    })
+)(Dialog);
 
 //----------------------------------------------------------------------------------------------------
 export const SvgEditor = ({state}) => {
     return (
         <div>
-            <div className='svg-container'><SvgContainer/></div>
+            <div className='svg-container'>
+                <SvgContainer/>
+            </div>
             <Display/>
-            <RenameDrawingDialog/>
+            <Dialog/>
         </div>
     );
 };

@@ -17,7 +17,7 @@ import { actions, modes } from './consts.js';
     persistId: number,
     shapes: {
         name: 'name',
-        selected: index
+        selected: index,
         data: [
             { 
                 type: 'path',
@@ -29,7 +29,14 @@ import { actions, modes } from './consts.js';
                     ['M,L,etc...', n, n, ...]
                 ]
             }
-        ]
+        ],
+        imageOverlay: {
+            url: string,
+            opacity: 0.1 ~ 1.0,
+            scale: 0.1 ~ 1.0,
+            left: x,
+            top: y,
+        }
     }
 } 
 */
@@ -54,6 +61,7 @@ export const createInitialState = () => {
                 'y': actions.DRAWING_CYCLE_SELECTION,
                 'Y': actions.DRAWING_CYCLE_SELECTION_RV,
                 'R': actions.MODE_PUSH_RENAME_DRAWING,
+                'i': actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY,
                 'p': actions.SHAPES_ADD_PATH,
                 'd': actions.SHAPES_DUPLICATE_SHAPE,
                 'x': actions.SHAPES_DELETE_SHAPE,
@@ -105,6 +113,26 @@ export const createInitialState = () => {
                 'ctrl-[': actions.MODE_POP,
                 'Enter': actions.MODE_POP,
             },
+            [modes.SET_IMAGE_URL]: {
+                'Escape': actions.MODE_POP,
+                'ctrl-[': actions.MODE_POP,
+                'Enter': actions.MODE_POP,
+            },
+            [modes.CONFIG_IMAGE_OVERLAY]: {
+                'Escape': actions.MODE_POP,
+                'ctrl-[': actions.MODE_POP,
+                'i': actions.MODE_PUSH_SET_IMAGE_URL,
+                'g': actions.GRID_CYCLE_SIZE,
+                'G': actions.GRID_CYCLE_SIZE_RV,
+                'e': actions.IMAGE_OVERLAY_ENLARGE,
+                'E': actions.IMAGE_OVERLAY_SHRINK,
+                'o': actions.IMAGE_OVERLAY_MORE_OPAQUE,
+                'O': actions.IMAGE_OVERLAY_LESS_OPAQUE,
+                'h': actions.IMAGE_OVERLAY_MOVE_LEFT,
+                'l': actions.IMAGE_OVERLAY_MOVE_RIGHT,
+                'k': actions.IMAGE_OVERLAY_MOVE_UP,
+                'j': actions.IMAGE_OVERLAY_MOVE_DOWN,
+            },
         },
         modes: [ modes.TOP ],
         drawings: [{persistId: persistId, name: name}],
@@ -113,6 +141,14 @@ export const createInitialState = () => {
             name: name,
             selected: -1,
             data: [],
+            imageOverlay: {
+                /*url: 'https://cdn.pixabay.com/photo/2016/05/30/20/54/bass-clef-1425777_960_720.png',*/
+                url: 'http://n-jinny.com/wp-content/uploads/2013/12/img_486492_8491336_1.jpg',
+                scale: 1.0,
+                opacity: 0.4,
+                left: 0,
+                top: 0,
+            },
         },
     };
 };
@@ -144,6 +180,8 @@ export const insertAt = (array, index, item) => {
     copy.splice(index + 1, 0, item);
     return copy;
 }
+
+export const increment = (value, delta, min, max) => Math.min(Math.max(value + delta, min), max);
 
 // shape
 
@@ -266,4 +304,7 @@ export const updateGrid = (state, update) => ({...state, grid: update(state.grid
 
 export const cycleGridSize = (state, isReverse) => updateGrid(state, grid => (
     {...grid, sizeIndex: cycle(grid.sizePresets, grid.sizeIndex, isReverse)}));
+
+// image-overlay
+export const updateImageOverlay = (state, update) => updateShapes(state, shapes => ({...shapes, imageOverlay: update(shapes.imageOverlay)}));
 
