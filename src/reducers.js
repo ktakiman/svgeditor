@@ -34,9 +34,9 @@ const pointReducer = (state, action) => {
             const selectedPoint = St.curShape(state).selectedPoint;
             return St.updatePathSegment(state, seg => St.movePathSegment(
                 seg,
-                selectedPoint,
                 isY ? 0 : snap(seg[1], unit, isIncrease) - seg[1], 
-                isY ? snap(seg[2], unit, isIncrease) - seg[2] : 0
+                isY ? snap(seg[2], unit, isIncrease) - seg[2] : 0,
+                selectedPoint, 
             ));
         case actions.POINT_CYCLE_SELECTION:
             return St.cyclePathPoints(state, false);
@@ -59,12 +59,12 @@ const pathReducer = (state, action) => {
         case actions.PATH_ADD_LINE:
             return St.addPathSegment(state, lastSeg => ['L', lastSeg[1] + 32, lastSeg[2]]);
         case actions.PATH_ADD_QUADRATIC_BEZIER:
-            return St.addPathSegment(state, lastSeg => ['Q', lastSeg[1] + 32, lastSeg[2], lastSeg[1], lastSeg[2] + 32]);
+            return St.addPathSegment(state, lastSeg => ['Q', lastSeg[1] + 32, lastSeg[2], lastSeg[1] + 16, lastSeg[2]]);
         case actions.PATH_ADD_CUBIC_BEZIER:
             return St.addPathSegment(state, lastSeg => ['C', 
                 lastSeg[1] + 32, lastSeg[2], 
-                lastSeg[1] + 16, lastSeg[2] - 32, 
-                lastSeg[1] + 16, lastSeg[2] + 32]);
+                lastSeg[1] + 8, lastSeg[2], 
+                lastSeg[1] + 24, lastSeg[2]]);
         case actions.PATH_INSERT_POINT:
             return St.updateSelectedShape(state, shape => {
                 let from = shape.segments[shape.selectedSegment];
@@ -218,8 +218,7 @@ const drawingReducer = (state, action) => {
 const imageOverlayReducer = (state, action) => {
     switch (action.type) {
         case actions.IMAGE_OVERLAY_SET_URL:
-            return St.updateImageOverlay(state, overlay => ({...overlay, url: action.url}));
-        case actions.IMAGE_OVERLAY_ENLARGE:
+            return St.updateImageOverlay(state, overlay => ({...overlay, url: action.url})); case actions.IMAGE_OVERLAY_ENLARGE:
         case actions.IMAGE_OVERLAY_SHRINK:
         {
             const delta = action.type === actions.IMAGE_OVERLAY_ENLARGE ? 0.1 : -0.1;

@@ -86,15 +86,11 @@ export const createInitialState = () => {
                 'x': actions.PATH_DELETE_POINT,
                 'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
                 'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
-                'h': actions.PATH_MOVE_LEFT,
-                'l': actions.PATH_MOVE_RIGHT,
-                'k': actions.PATH_MOVE_UP,
-                'j': actions.PATH_MOVE_DOWN,
                 's': actions.PATH_TOGGLE_CLOSE,
-                'H': actions.POINT_MOVE_LEFT,
-                'L': actions.POINT_MOVE_RIGHT,
-                'K': actions.POINT_MOVE_UP,
-                'J': actions.POINT_MOVE_DOWN,
+                'h': actions.POINT_MOVE_LEFT,
+                'l': actions.POINT_MOVE_RIGHT,
+                'k': actions.POINT_MOVE_UP,
+                'j': actions.POINT_MOVE_DOWN,
             },
             [modes.PATH_SEGMENT_SELECTED]: {
                 'g': actions.GRID_CYCLE_SIZE,
@@ -230,11 +226,12 @@ export const addPathSegment = (state, createNewSegment) => updateSelectedShape(s
 export const updatePathSegment = (state, update) => updateSelectedShape(state, shape => (
     {...shape, segments: updateArrayItem(shape.segments, shape.selectedSegment, update)}));
 
-export const movePathSegment = (segment, selectedPoint, dx, dy) => {
+export const movePathSegment = (segment, dx, dy, selectedPoint) => {
+    const moveAll = selectedPoint === undefined;
     const newSeg = [...segment];
-    const updatePoint1 = selectedPoint === 0;
-    const updatePoint2 = segment.length > 3 && (selectedPoint === 0 || selectedPoint === 1);
-    const updatePoint3 = segment.length > 5 && (selectedPoint === 0 || selectedPoint === 2);
+    const updatePoint1 = moveAll || selectedPoint === 0;
+    const updatePoint2 = segment.length > 3 && (moveAll || selectedPoint === 1);
+    const updatePoint3 = segment.length > 5 && (moveAll || selectedPoint === 2);
     if (updatePoint1) {
         newSeg[1] += dx;
         newSeg[2] += dy;
@@ -255,7 +252,7 @@ export const moveShape = (shape, dx, dy) => {
         case 'path':
             return {
                 ...shape, 
-                segments: shape.segments.map(seg => movePathSegment(seg, 0, dx, dy))
+                segments: shape.segments.map(seg => movePathSegment(seg, dx, dy))
             };
         default:
             break;
