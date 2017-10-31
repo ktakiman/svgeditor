@@ -159,8 +159,46 @@ const gridReducer = (state, action) => {
         case actions.GRID_CYCLE_SIZE_RV:
             return St.cycleGridSize(state, true);
         default:
-            return state;
+            break;
     }
+    
+    return state;
+};
+
+const zoomReducer = (state, action) => {
+    switch (action.type) {
+        case actions.ZOOM_IN:
+        case actions.ZOOM_OUT:
+            const factor = action.type === actions.ZOOM_IN ? 1.5 : 1 / 1.5;
+            return St.updateZoom(state, zoom => {
+                const newZoom = St.multiply(zoom.scale, factor, 1, 64);
+                return {
+                    ...zoom, 
+                    scale: newZoom,
+                    translate: [
+                        St.calcMoveZoom(zoom.translate[0], state.containerSize[0], newZoom, 0),
+                        St.calcMoveZoom(zoom.translate[1], state.containerSize[1], newZoom, 0)
+                    ]
+                };
+            });
+        case actions.ZOOM_MOVE_LEFT:
+        case actions.ZOOM_MOVE_RIGHT:
+        case actions.ZOOM_MOVE_UP:
+        case actions.ZOOM_MOVE_DOWN:
+            const {isY, isIncrease} = translateMove(action.type);
+            const direct = isIncrease ? -1 : 1;
+            return St.updateZoom(state, zoom => ({
+                ...zoom,
+                translate: [
+                    isY ? zoom.translate[0] : St.calcMoveZoom(zoom.translate[0], state.containerSize[0], zoom.scale, direct),
+                    isY ? St.calcMoveZoom(zoom.translate[1], state.containerSize[1], zoom.scale, direct) : zoom.translate[1] 
+                ]
+            }));
+        default:
+            break;
+    }
+
+    return state;
 };
 
 const modeReducer = (state, action) => {
@@ -262,6 +300,7 @@ const mapReducers = [
     { prefix: "POINT", reducer: pointReducer },
     { prefix: "DRAWING", reducer: drawingReducer },
     { prefix: "IMAGE_OVERLAY", reducer: imageOverlayReducer },
+    { prefix: "ZOOM", reducer: zoomReducer },
 ];
 
 export const mainReducer = (state, action) => {

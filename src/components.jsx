@@ -86,15 +86,18 @@ const Overlay = ({overlay, containerWidth, containerHeight}) => {
 }
 
 //----------------------------------------------------------------------------------------------------
-let SvgContainer = ({containerSize, shapes, gridSize, mode}) => {
+let SvgContainer = ({containerSize, shapes, gridSize, mode, zoom}) => {
     const width = containerSize[0];
     const height = containerSize[1];
     const gridLines = gridSize > 0 ? <Grid width={width} height={height} size={gridSize}/> : null;
+    const transform = 'scale(' + zoom.scale + '), translate(' + zoom.translate[0] + ',' + zoom.translate[1] + ')';
     return (
         <svg width={width} height={height}>
-            {gridLines}
-            <Shapes shapes={shapes} selected={shapes.selected} mode={mode}/>
-            <Overlay overlay={shapes.imageOverlay} containerWidth={width} containerHeight={height}/>
+            <g transform={transform}>
+                {gridLines}
+                <Shapes shapes={shapes} selected={shapes.selected} mode={mode}/>
+                <Overlay overlay={shapes.imageOverlay} containerWidth={width} containerHeight={height}/>
+            </g>
         </svg>
     );
 };
@@ -105,7 +108,8 @@ SvgContainer = ReactRedux.connect(
         containerSize: state.containerSize,
         shapes: state.shapes,
         gridSize: St.gridSize(state),
-        mode: state.modes[state.modes.length - 1]
+        mode: state.modes[state.modes.length - 1],
+        zoom: state.zoom,
     }),
     null
 )(SvgContainer);

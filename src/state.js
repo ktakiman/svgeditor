@@ -7,6 +7,10 @@ import { actions, modes } from './consts.js';
         sizePresets: [0, size1, size2, ....],
         sizeIndex: index
     },
+    zoom: {
+        scale: num,
+        translate: [x, y],
+    },
     modes: [....],   // used as stack
     keyMapping: {
         'universal': { key1: action1, key2: action2 },
@@ -50,6 +54,10 @@ export const createInitialState = () => {
             sizePresets: [0, 8, 16, 32],
             sizeIndex: 2
         },
+        zoom: {
+            scale: 1,
+            translate: [0, 0],
+        },
         keyMapping: {
             'universal': {
             },
@@ -71,6 +79,12 @@ export const createInitialState = () => {
                 'l': actions.PATH_MOVE_RIGHT,
                 'k': actions.PATH_MOVE_UP,
                 'j': actions.PATH_MOVE_DOWN,
+                'z': actions.ZOOM_IN,
+                'Z': actions.ZOOM_OUT,
+                'H': actions.ZOOM_MOVE_LEFT,
+                'L': actions.ZOOM_MOVE_RIGHT,
+                'K': actions.ZOOM_MOVE_UP,
+                'J': actions.ZOOM_MOVE_DOWN,
             },
             [modes.PATH_SELECTED]: {
                 'g': actions.GRID_CYCLE_SIZE,
@@ -91,6 +105,12 @@ export const createInitialState = () => {
                 'l': actions.POINT_MOVE_RIGHT,
                 'k': actions.POINT_MOVE_UP,
                 'j': actions.POINT_MOVE_DOWN,
+                'z': actions.ZOOM_IN,
+                'Z': actions.ZOOM_OUT,
+                'H': actions.ZOOM_MOVE_LEFT,
+                'L': actions.ZOOM_MOVE_RIGHT,
+                'K': actions.ZOOM_MOVE_UP,
+                'J': actions.ZOOM_MOVE_DOWN,
             },
             [modes.PATH_SEGMENT_SELECTED]: {
                 'g': actions.GRID_CYCLE_SIZE,
@@ -103,6 +123,12 @@ export const createInitialState = () => {
                 'j': actions.POINT_MOVE_DOWN,
                 'n': actions.POINT_CYCLE_SELECTION,
                 'N': actions.POINT_CYCLE_SELECTION_RV,
+                'z': actions.ZOOM_IN,
+                'Z': actions.ZOOM_OUT,
+                'H': actions.ZOOM_MOVE_LEFT,
+                'L': actions.ZOOM_MOVE_RIGHT,
+                'K': actions.ZOOM_MOVE_UP,
+                'J': actions.ZOOM_MOVE_DOWN,
             },
             [modes.RENAME_DRAWING]: {
                 'Escape': actions.MODE_POP,
@@ -128,6 +154,12 @@ export const createInitialState = () => {
                 'l': actions.IMAGE_OVERLAY_MOVE_RIGHT,
                 'k': actions.IMAGE_OVERLAY_MOVE_UP,
                 'j': actions.IMAGE_OVERLAY_MOVE_DOWN,
+                'z': actions.ZOOM_IN,
+                'Z': actions.ZOOM_OUT,
+                'H': actions.ZOOM_MOVE_LEFT,
+                'L': actions.ZOOM_MOVE_RIGHT,
+                'K': actions.ZOOM_MOVE_UP,
+                'J': actions.ZOOM_MOVE_DOWN,
             },
         },
         modes: [ modes.TOP ],
@@ -178,6 +210,7 @@ export const insertAt = (array, index, item) => {
 }
 
 export const increment = (value, delta, min, max) => Math.min(Math.max(value + delta, min), max);
+export const multiply = (value, factor, min, max) => Math.min(Math.max(value * factor, min), max);
 
 // shape
 
@@ -297,11 +330,16 @@ export const popMode = state => state.modes.length == 1 ? state : {...state, mod
 // grid
 export const gridSize = state => state.grid.sizePresets[state.grid.sizeIndex];
 
-export const updateGrid = (state, update) => ({...state, grid: update(state.grid) });
+export const updateGrid = (state, update) => ({...state, grid: update(state.grid)});
 
 export const cycleGridSize = (state, isReverse) => updateGrid(state, grid => (
     {...grid, sizeIndex: cycle(grid.sizePresets, grid.sizeIndex, isReverse)}));
 
 // image-overlay
 export const updateImageOverlay = (state, update) => updateShapes(state, shapes => ({...shapes, imageOverlay: update(shapes.imageOverlay)}));
+
+// zoom
+export const updateZoom = (state, update) => ({...state, zoom: update(state.zoom)});
+export const calcMoveZoom = (curValue, size, scale, factor) => 
+    increment(curValue, factor * size / (4 * scale), -(scale - 1) * size / scale, 0);
 
