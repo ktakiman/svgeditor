@@ -3,6 +3,8 @@ svg { background-color: #e0e0d0; }
 
 input { font-family: inherit; font-size: inherit; }
 
+line, path, circle { vector-effect: non-scaling-stroke; }
+
 path { stroke: navy; fill: none; }
 path.selected { storoke: navy; stroke-width: 3; }
 path.fill { stroke: none; fill: #8282b9; }
@@ -13,7 +15,7 @@ circle.point.selected { fill: orangered; }
 
 image.overlay { opacity: 0.2; }
 
-.grid { stroke: white; stroke-dasharray: 1, 1}
+.grid { stroke: white; stroke-dasharray: 2, 2;}
 
 .svg-container { float: left; position: relative; } /* made relative for image-overlay div */
 

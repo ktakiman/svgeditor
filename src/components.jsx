@@ -4,9 +4,9 @@ import * as ReactRedux from 'react-redux';
 import { modes, actions } from './consts.js';
 import * as St from './state.js';
 
-const getPointRadius = isLarge => isLarge ? 5 : 3;
+const getPointRadius = (isLarge, scale) => (isLarge ? 5 : 3) / scale;
 //------------------------------------------------------------------------------
-const Path = ({shape, selected, mode}) => {
+const Path = ({shape, selected, mode, scale}) => {
     let pts = [];
     const extraPts = [];
     const isSegSelMode = mode === modes.PATH_SEGMENT_SELECTED;
@@ -22,16 +22,16 @@ const Path = ({shape, selected, mode}) => {
                 if (p[0] === 'Q' || p[0] === 'C') {
                     largePt = shape.selectedPoint === 0;
 
-                    let radius = getPointRadius(shape.selectedPoint === 1);
+                    let radius = getPointRadius(shape.selectedPoint === 1, scale);
                     extraPts.push(<circle className={className.join(' ')} cx={p[3]} cy={p[4]} r={radius} key='ex1'/>);
                     
                     if (p[0] === 'C') {
-                        radius = getPointRadius(shape.selectedPoint === 2);
+                        radius = getPointRadius(shape.selectedPoint === 2, scale);
                         extraPts.push(<circle className={className.join(' ')} cx={p[5]} cy={p[6]} r={radius} key='ex2'/>);
                     }
                 }
             }
-            return <circle className={className.join(' ')} cx={x} cy={y} r={getPointRadius(largePt)} key={i}/>;
+            return <circle className={className.join(' ')} cx={x} cy={y} r={getPointRadius(largePt, scale)} key={i}/>;
         });
     }
     const path = St.svg(shape);
@@ -48,7 +48,7 @@ const Path = ({shape, selected, mode}) => {
 };
 
 //------------------------------------------------------------------------------
-const Shapes = ({shapes, selected, mode}) => {
+const Shapes = ({shapes, selected, mode, scale}) => {
     const ps = shapes.data.map((sh, i) => {
         switch (sh.type)
         {
@@ -57,6 +57,7 @@ const Shapes = ({shapes, selected, mode}) => {
                     shape={sh} 
                     selected={i === shapes.selected} 
                     mode={mode} 
+                    scale={scale}
                     key={i}/>);
             default: return null;
         }
@@ -94,9 +95,9 @@ let SvgContainer = ({containerSize, shapes, gridSize, mode, zoom}) => {
     return (
         <svg width={width} height={height}>
             <g transform={transform}>
-                {gridLines}
-                <Shapes shapes={shapes} selected={shapes.selected} mode={mode}/>
                 <Overlay overlay={shapes.imageOverlay} containerWidth={width} containerHeight={height}/>
+                {gridLines}
+                <Shapes shapes={shapes} selected={shapes.selected} mode={mode} scale={zoom.scale}/>
             </g>
         </svg>
     );
