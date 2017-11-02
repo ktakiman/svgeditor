@@ -1,7 +1,8 @@
 body { font-family: consola, monospace; }
 svg { background-color: #e0e0d0; }
-
+h1, h2, h3 { margin: 0; }
 input { font-family: inherit; font-size: inherit; }
+table { font-size: inherit; }
 
 line, path, circle { vector-effect: non-scaling-stroke; }
 
@@ -19,13 +20,14 @@ image.overlay { opacity: 0.2; }
 
 .svg-container { float: left; position: relative; } /* made relative for image-overlay div */
 
-.display { margin-left: 810px; vertical-align: top; }
+.display { margin-left: 810px; vertical-align: top; height: 100%; overflow: hidden; font-size: 70%;}
+.display > *:not(:first-child) { margin-top: 1em; }
 .display .filename { font-style: italic; }
-.display .point { font-size: smaller; white-space: nowrap; display:inline-block; }
+.display .point { white-space: nowrap; display:inline-block; }
 .display .point.selected { font-weight: bold; color: #ff5733; } 
 .display .point:not(:last-child) { margin-right: 10px; }
 
-.display .keyboard-mapping { font-size: 75%; }
+.display .keyboard-mapping {  }
 .display .keyboard-mapping .col-one { padding-right: 10px; }
 
 /* dialogs */

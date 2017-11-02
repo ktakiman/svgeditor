@@ -155,10 +155,10 @@ let Display = ({name, persistId, mode, selectedShape, keyMapping}) => {
     
     return (
         <div className='display'>
-            <h3 className='filename'>{name + " (" + persistId + ")"}</h3>
-            <h3>{mode}</h3>
-            {seg}
-            <h3>Keyboard Mapping</h3>
+            <h2 className='filename'>{name + " (" + persistId + ")"}</h2>
+            <h2>{mode}</h2>
+            <div>{seg}</div>
+            <h2>Keyboard Mapping</h2>
             <table className='keyboard-mapping'><tbody>
                 {keyMap}
             </tbody></table>

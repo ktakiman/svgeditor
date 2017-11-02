@@ -49,7 +49,7 @@ export const createInitialState = () => {
     const persistId = generateId(); 
     const name = 'untitled';
     return { 
-        containerSize: [800, 500], 
+        containerSize: [800, 576], 
         grid: { 
             sizePresets: [0, 8, 16, 32],
             sizeIndex: 2
@@ -123,6 +123,8 @@ export const createInitialState = () => {
                 'j': actions.POINT_MOVE_DOWN,
                 'n': actions.POINT_CYCLE_SELECTION,
                 'N': actions.POINT_CYCLE_SELECTION_RV,
+                'm': actions.PATH_CYCLE_SEGMENT_SELECTION,
+                'M': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
                 'z': actions.ZOOM_IN,
                 'Z': actions.ZOOM_OUT,
                 'H': actions.ZOOM_MOVE_LEFT,
