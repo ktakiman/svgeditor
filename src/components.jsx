@@ -9,15 +9,15 @@ const getPointRadius = (isLarge, scale) => (isLarge ? 5 : 3) / scale;
 const Path = ({shape, selected, mode, scale}) => {
     let pts = [];
     const extraPts = [];
-    const isSegSelMode = mode === modes.PATH_SEGMENT_SELECTED;
-    if (selected && (mode === modes.PATH_SELECTED || isSegSelMode)) {
+    const isPathSelectedMode = mode === modes.PATH_SELECTED;
+    if (selected && isPathSelectedMode) {
         pts = shape.segments.map((p, i) => {
             const x = p[1];
             const y = p[2];
             const segSelected = shape.selectedSegment === i;
             let largePt = segSelected;
             const className = ['point'];
-            if (segSelected && isSegSelMode) {
+            if (segSelected) {
                 className.push('selected');
                 if (p[0] === 'Q' || p[0] === 'C') {
                     largePt = shape.selectedPoint === 0;

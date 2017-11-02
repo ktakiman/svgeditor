@@ -233,10 +233,6 @@ const modeReducer = (state, action) => {
                 return St.pushMode(state, modes.PATH_SELECTED);
             }
             break;
-        case actions.MODE_PUSH_PATH_SEGMENT_SELECTED:
-            return St.pushMode(state, modes.PATH_SEGMENT_SELECTED);
-        case actions.MODE_POP_PATH_SEGMENT_SELECTED:
-            return St.popMode(St.updateSelectedShape(state, shape => ({...shape, selectedPoint: 0})));
         case actions.MODE_PUSH_RENAME_DRAWING:
             return St.pushMode(state, modes.RENAME_DRAWING);
         case actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY:
