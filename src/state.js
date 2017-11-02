@@ -96,7 +96,9 @@ export const createInitialState = () => {
                 't': actions.PATH_ADD_LINE,
                 'q': actions.PATH_ADD_QUADRATIC_BEZIER,
                 'c': actions.PATH_ADD_CUBIC_BEZIER,
-                'i': actions.PATH_INSERT_POINT,
+                'T': actions.PATH_INSERT_POINT,
+                'Q': actions.PATH_INSERT_QUADRATIC_BEZIER,
+                'C': actions.PATH_INSERT_CUBIC_BEZIER,
                 'x': actions.PATH_DELETE_POINT,
                 'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
                 'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
@@ -207,6 +209,8 @@ export const insertAt = (array, index, item) => {
 
 export const increment = (value, delta, min, max) => Math.min(Math.max(value + delta, min), max);
 export const multiply = (value, factor, min, max) => Math.min(Math.max(value * factor, min), max);
+
+export const roundSegment = segment => segment.map((v, i) => i == 0 ? v : Math.round(v));
 
 // shape
 

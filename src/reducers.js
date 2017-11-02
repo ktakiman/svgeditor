@@ -32,10 +32,12 @@ const pointReducer = (state, action) => {
             const {isY, isIncrease} = translateMove(action.type);
             const unit = St.gridSize(state);
             const selectedPoint = St.curShape(state).selectedPoint;
+            const xi = 1 + selectedPoint * 2;
+            const yi = 2 + selectedPoint * 2;
             return St.updatePathSegment(state, seg => St.movePathSegment(
                 seg,
-                isY ? 0 : snap(seg[1], unit, isIncrease) - seg[1], 
-                isY ? snap(seg[2], unit, isIncrease) - seg[2] : 0,
+                isY ? 0 : snap(seg[xi], unit, isIncrease) - seg[xi], 
+                isY ? snap(seg[yi], unit, isIncrease) - seg[yi] : 0,
                 selectedPoint, 
             ));
         case actions.POINT_CYCLE_SELECTION:
@@ -66,6 +68,8 @@ const pathReducer = (state, action) => {
                 lastSeg[1] + 8, lastSeg[2], 
                 lastSeg[1] + 24, lastSeg[2]]);
         case actions.PATH_INSERT_POINT:
+        case actions.PATH_INSERT_QUADRATIC_BEZIER:
+        case actions.PATH_INSERT_CUBIC_BEZIER:
             return St.updateSelectedShape(state, shape => {
                 let from = shape.segments[shape.selectedSegment];
                 let to;
@@ -76,12 +80,31 @@ const pathReducer = (state, action) => {
                 } else {
                     return shape;
                 }
+                const dx = (to[1] - from[1]) / 2;
+                const dy = (to[2] - from[2]) / 2;
+                const x = from[1] + dx;
+                const y = from[2] + dy;
 
-                const newPt = ['L', (from[1] + to[1]) / 2, (from[2] + to[2]) / 2];
+                let newPt;
+
+                switch (action.type)
+                {
+                    case actions.PATH_INSERT_POINT:
+                        newPt = ['L', x, y];
+                        break;
+                    case actions.PATH_INSERT_QUADRATIC_BEZIER:
+                        newPt = ['Q', x, y, from[1] + dx /2, from[2] + dy / 2];
+                        break;
+                    case actions.PATH_INSERT_CUBIC_BEZIER:
+                        newPt = ['C', x, y, from[1] + dx / 3, from[2] + dy / 3, from[1] + 2 * dx / 3, from[2] + 2 * dy / 3];
+                        break;
+                    default:
+                        break;
+                }
                 return { 
                     ...shape, 
                     selectedSegment: shape.selectedSegment + 1,
-                    segments: St.insertAt(shape.segments, shape.selectedSegment, newPt)
+                    segments: St.insertAt(shape.segments, shape.selectedSegment, St.roundSegment(newPt))
                 };
             });
         case actions.PATH_DELETE_POINT:
