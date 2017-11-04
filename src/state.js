@@ -65,17 +65,19 @@ export const createInitialState = () => {
                 'g': actions.GRID_CYCLE_SIZE,
                 'G': actions.GRID_CYCLE_SIZE_RV,
                 ' ': actions.MODE_PUSH_PATH_SELECTED,  // temporary, depends on a currently selected shape type
-                'E': actions.DRAWING_NEW,
+                'W': actions.DRAWING_NEW,
                 'y': actions.DRAWING_CYCLE_SELECTION,
                 'Y': actions.DRAWING_CYCLE_SELECTION_RV,
                 'R': actions.MODE_PUSH_RENAME_DRAWING,
-                'i': actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY,
+                'I': actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY,
                 'p': actions.SHAPES_ADD_PATH,
                 'd': actions.SHAPES_DUPLICATE_SHAPE,
                 'x': actions.SHAPES_DELETE_SHAPE,
                 'n': actions.SHAPES_CYCLE_SELECTION,
                 'N': actions.SHAPES_CYCLE_SELECTION_RV,
                 'f': actions.SHAPE_TOGGLE_FILL,
+                'e': actions.SHAPE_ENLARGE,
+                'E': actions.SHAPE_SHRINK,
                 'h': actions.PATH_MOVE_LEFT,
                 'l': actions.PATH_MOVE_RIGHT,
                 'k': actions.PATH_MOVE_UP,
@@ -274,6 +276,46 @@ export const moveShape = (shape, dx, dy) => {
     }
 };
 
+const calcMinMax = ({min, max}, val) => ({ min: Math.min(min, val), max: Math.max(max, val) });
+const joinMinMax = (mm1, mm2) => ({ min: Math.min(mm1.min, mm2.min), max: Math.max(mm1.max, mm2.max) });
+    
+const getPointMinMax = (segment) => {
+    let x = { min: segment[1], max: segment[1] };
+    let y = { min: segment[2], max: segment[2] };
+
+    if (segment.length >= 5) {
+        x = calcMinMax(x, segment[3]);
+        y = calcMinMax(y, segment[4]);
+    }
+
+    if (segment.length >= 7) {
+        x = calcMinMax(x, segment[5]);
+        y = calcMinMax(y, segment[6]);
+    }
+
+    return { x, y };
+};
+
+export const resizePath = (segments, factor) => {
+    const minmax = segments.reduce((ag, seg) => {
+        const ptMinMax = getPointMinMax(seg);
+        return { x: joinMinMax(ag.x, ptMinMax.x), y: joinMinMax(ag.y, ptMinMax.y) };
+    }, { x: { min: Number.MAX_VALUE, max: -Number.MAX_VALUE }, y: { min: Number.MAX_VALUE, max: -Number.MAX_VALUE }});
+
+    const xCenter = minmax.x.min + (minmax.x.max - minmax.x.min) / 2;
+    const yCenter = minmax.y.min + (minmax.y.max - minmax.y.min) / 2;
+
+    return segments.map(seg => seg.map((pt, i) => {
+        if (i === 0) {
+            return pt;
+        } else if (i % 2 == 1) {
+            return Math.round(xCenter + (pt - xCenter) * factor);
+        } else {
+            return Math.round(yCenter + (pt - yCenter) * factor);
+        }
+    }));
+};
+
 // svg
 const pathSvg = path => {
     let svg = path.segments.map(s => {
@@ -322,6 +364,9 @@ export const updateImageOverlay = (state, update) => updateShapes(state, shapes 
 
 // zoom
 export const updateZoom = (state, update) => ({...state, zoom: update(state.zoom)});
+
+export const enforceZoomTranslateRange = (scale, ratio) => Math.min(0, Math.max(ratio, 1 / scale - 1));
+
 export const calcMoveZoom = (curValue, size, scale, factor) => 
     increment(curValue, factor * size / (4 * scale), -(scale - 1) * size / scale, 0);
 

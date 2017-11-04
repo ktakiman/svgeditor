@@ -43,7 +43,7 @@ const pointReducer = (state, action) => {
         case actions.POINT_CYCLE_SELECTION:
             return St.cyclePathPoints(state, false);
         case actions.POINT_CYCLE_SELECTION_RV:
-            return St.cyclePathPoints(state, false);
+            return St.cyclePathPoints(state, true);
     }
 };
 
@@ -139,6 +139,12 @@ const shapeReducer = (state, action) => {
     switch (action.type) {
         case actions.SHAPE_TOGGLE_FILL:
             return St.updateSelectedShape(state, shape => ({...shape, fill: !shape.fill}));
+        case actions.SHAPE_ENLARGE:
+            // assume path for now
+            return St.updateSelectedShape(state, shape => ({...shape, segments: St.resizePath(shape.segments, 1.1)}));
+        case actions.SHAPE_SHRINK:
+            // assume path for now
+            return St.updateSelectedShape(state, shape => ({...shape, segments: St.resizePath(shape.segments, 1/1.1)}));
         default:
             return state;
     }
@@ -195,12 +201,14 @@ const zoomReducer = (state, action) => {
             const factor = action.type === actions.ZOOM_IN ? 1.5 : 1 / 1.5;
             return St.updateZoom(state, zoom => {
                 const newZoom = St.multiply(zoom.scale, factor, 1, 64);
+                const xCenter = (1 / (2 * zoom.scale)) - zoom.translate[0] / state.containerSize[0]; // current center point by ratio
+                const yCenter = (1 / (2 * zoom.scale)) - zoom.translate[1] / state.containerSize[1]; // "
                 return {
                     ...zoom, 
                     scale: newZoom,
                     translate: [
-                        St.calcMoveZoom(zoom.translate[0], state.containerSize[0], newZoom, 0),
-                        St.calcMoveZoom(zoom.translate[1], state.containerSize[1], newZoom, 0)
+                        state.containerSize[0] * St.enforceZoomTranslateRange(newZoom, (1 / ( 2 * newZoom) - xCenter)),
+                        state.containerSize[1] * St.enforceZoomTranslateRange(newZoom, (1 / ( 2 * newZoom) - yCenter)),
                     ]
                 };
             });
