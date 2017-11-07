@@ -199,6 +199,7 @@ const ellipseReducer = (state, action) => {
 };
 
 const shapeReducer = (state, action) => {
+    if (state.shapes.selected < 0) { return state; }
     switch (action.type) {
         case actions.SHAPE_MOVE_UP:
         case actions.SHAPE_MOVE_DOWN:
@@ -280,12 +281,14 @@ const shapesReducer = (state, action) => {
                 ry: 16,
             });
         case actions.SHAPES_DUPLICATE_SHAPE:
+            if (state.shapes.selected < 0) { return state; }
             return St.updateShapes(state, shapes => ({
                 ...shapes,
                 selected: shapes.data.length,
                 data: [...shapes.data, {...St.moveShape(St.curShape(state), 10, 10)}]
             }));
         case actions.SHAPES_DELETE_SHAPE:
+            if (state.shapes.selected < 0) { return state; }
             return St.updateShapes(state, shapes => ({
                 ...shapes,
                 selected: St.shiftIndex(shapes.selected, shapes.data.length),

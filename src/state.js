@@ -181,8 +181,6 @@ export const createInitialState = () => {
             selected: -1,
             data: [],
             imageOverlay: {
-                /*url: 'https://cdn.pixabay.com/photo/2016/05/30/20/54/bass-clef-1425777_960_720.png',*/
-                url: 'http://n-jinny.com/wp-content/uploads/2013/12/img_486492_8491336_1.jpg',
                 scale: 1.0,
                 opacity: 0.4,
                 left: 0,
