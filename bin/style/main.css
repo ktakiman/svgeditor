@@ -4,15 +4,15 @@ h1, h2, h3 { margin: 0; }
 input { font-family: inherit; font-size: inherit; }
 table { font-size: inherit; }
 
-line, path, circle { vector-effect: non-scaling-stroke; }
+line, path, circle, ellipse { vector-effect: non-scaling-stroke; }
 
-path { stroke: navy; fill: none; }
-path.selected { storoke: navy; stroke-width: 3; }
-path.fill { stroke: none; fill: #8282b9; }
-path.selected.fill { fill: #4949ad; }
+.shape { stroke: navy; fill: none; }
+.shape.selected { storoke: navy; stroke-width: 3; }
+.shape.fill { stroke: none; fill: #8282b9; }
+.shape.selected.fill { fill: #4949ad; }
 
-circle.point { stroke: none; fill: black; }
-circle.point.selected { fill: orangered; }
+.point { stroke: none; fill: black; }
+.point.selected { fill: orangered; }
 
 image.overlay { opacity: 0.2; }
 

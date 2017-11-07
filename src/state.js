@@ -32,6 +32,12 @@ import { actions, modes } from './consts.js';
                 segments: [
                     ['M,L,etc...', n, n, ...]
                 ]
+            },
+            {
+                type: 'circle',
+                fill: bool,
+                center: [x, y],
+                radius: number
             }
         ],
         imageOverlay: {
@@ -64,24 +70,26 @@ export const createInitialState = () => {
             [modes.TOP]: {
                 'g': actions.GRID_CYCLE_SIZE,
                 'G': actions.GRID_CYCLE_SIZE_RV,
-                ' ': actions.MODE_PUSH_PATH_SELECTED,  // temporary, depends on a currently selected shape type
+                ' ': actions.MODE_PUSH_SHAPE_SELECTED,
                 'W': actions.DRAWING_NEW,
                 'y': actions.DRAWING_CYCLE_SELECTION,
                 'Y': actions.DRAWING_CYCLE_SELECTION_RV,
                 'R': actions.MODE_PUSH_RENAME_DRAWING,
                 'I': actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY,
                 'p': actions.SHAPES_ADD_PATH,
+                'c': actions.SHAPES_ADD_CIRCLE,
+                'e': actions.SHAPES_ADD_ELLIPSE,
                 'd': actions.SHAPES_DUPLICATE_SHAPE,
-                'x': actions.SHAPES_DELETE_SHAPE,
+                'X': actions.SHAPES_DELETE_SHAPE,
                 'n': actions.SHAPES_CYCLE_SELECTION,
                 'N': actions.SHAPES_CYCLE_SELECTION_RV,
                 'f': actions.SHAPE_TOGGLE_FILL,
-                'e': actions.SHAPE_ENLARGE,
-                'E': actions.SHAPE_SHRINK,
-                'h': actions.PATH_MOVE_LEFT,
-                'l': actions.PATH_MOVE_RIGHT,
-                'k': actions.PATH_MOVE_UP,
-                'j': actions.PATH_MOVE_DOWN,
+                '<': actions.SHAPE_ENLARGE,
+                '>': actions.SHAPE_SHRINK,
+                'h': actions.SHAPE_MOVE_LEFT,
+                'l': actions.SHAPE_MOVE_RIGHT,
+                'k': actions.SHAPE_MOVE_UP,
+                'j': actions.SHAPE_MOVE_DOWN,
                 'z': actions.ZOOM_IN,
                 'Z': actions.ZOOM_OUT,
                 'H': actions.ZOOM_MOVE_LEFT,
@@ -118,6 +126,25 @@ export const createInitialState = () => {
                 'K': actions.ZOOM_MOVE_UP,
                 'J': actions.ZOOM_MOVE_DOWN,
             },
+            [modes.ELLIPSE_SELECTED]: {
+                'g': actions.GRID_CYCLE_SIZE,
+                'G': actions.GRID_CYCLE_SIZE_RV,
+                'Escape': actions.MODE_POP,
+                'ctrl-[': actions.MODE_POP,
+                'f': actions.SHAPE_TOGGLE_FILL,
+                '<': actions.SHAPE_ENLARGE,
+                '>': actions.SHAPE_SHRINK,
+                'h': actions.ELLIPSE_SHRINK_HZ,
+                'l': actions.ELLIPSE_ENLARGE_HZ,
+                'k': actions.ELLIPSE_SHRINK_VT,
+                'j': actions.ELLIPSE_ENLARGE_VT,
+                'z': actions.ZOOM_IN,
+                'Z': actions.ZOOM_OUT,
+                'H': actions.ZOOM_MOVE_LEFT,
+                'L': actions.ZOOM_MOVE_RIGHT,
+                'K': actions.ZOOM_MOVE_UP,
+                'J': actions.ZOOM_MOVE_DOWN,
+            },
             [modes.RENAME_DRAWING]: {
                 'Escape': actions.MODE_POP,
                 'ctrl-[': actions.MODE_POP,
@@ -134,8 +161,8 @@ export const createInitialState = () => {
                 'i': actions.MODE_PUSH_SET_IMAGE_URL,
                 'g': actions.GRID_CYCLE_SIZE,
                 'G': actions.GRID_CYCLE_SIZE_RV,
-                'e': actions.IMAGE_OVERLAY_ENLARGE,
-                'E': actions.IMAGE_OVERLAY_SHRINK,
+                '<': actions.IMAGE_OVERLAY_ENLARGE,
+                '>': actions.IMAGE_OVERLAY_SHRINK,
                 'o': actions.IMAGE_OVERLAY_MORE_OPAQUE,
                 'O': actions.IMAGE_OVERLAY_LESS_OPAQUE,
                 'h': actions.IMAGE_OVERLAY_MOVE_LEFT,
@@ -193,8 +220,11 @@ export const insertAt = (array, index, item) => {
 
 export const increment = (value, delta, min, max) => Math.min(Math.max(value + delta, min), max);
 export const multiply = (value, factor, min, max) => Math.min(Math.max(value * factor, min), max);
+export const notZero = (orgValue, newValue) => newValue <= 0 ? orgValue : newValue;
 
-export const roundSegment = segment => segment.map((v, i) => i == 0 ? v : Math.round(v));
+export const round = num => Math.round(num * 100) / 100;
+
+export const roundSegment = segment => segment.map((v, i) => i == 0 ? v : round(v));
 
 // shape
 
@@ -229,8 +259,11 @@ const getSelectedPoint = (curSelection, segment, isReverse) => {
     return cycle(factor, curSelection, isReverse);
 }
 
-export const cyclePathPoints = (state, isReverse) => updateSelectedShape(state, shape => (
-    {...shape, selectedPoint: getSelectedPoint(shape.selectedPoint, shape.segments[shape.selectedSegment], isReverse)}));
+export const cyclePathPoints = (shape, isReverse) => (
+    {...shape, selectedPoint: getSelectedPoint(shape.selectedPoint, shape.segments[shape.selectedSegment], isReverse)});
+
+export const cycleEllipsePoints = (state, isReverse) => updateSelectedShape(state, shape => (
+    {...shape, selectedPoint: cycle(3, shape.selectedSegment, isReverse)}));
 
 export const addPathSegment = (state, createNewSegment) => updateSelectedShape(state, shape => (
     {
@@ -240,8 +273,8 @@ export const addPathSegment = (state, createNewSegment) => updateSelectedShape(s
         segments: [...shape.segments, createNewSegment(shape.segments[shape.segments.length - 1])]
     }));
     
-export const updatePathSegment = (state, update) => updateSelectedShape(state, shape => (
-    {...shape, segments: updateArrayItem(shape.segments, shape.selectedSegment, update)}));
+export const updatePathSegment = (path, update) => (
+    {...pathe, segments: updateArrayItem(path.segments, path.selectedSegment, update)});
 
 export const movePathSegment = (segment, dx, dy, selectedPoint) => {
     const moveAll = selectedPoint === undefined;
@@ -271,6 +304,12 @@ export const moveShape = (shape, dx, dy) => {
                 ...shape, 
                 segments: shape.segments.map(seg => movePathSegment(seg, dx, dy))
             };
+        case 'circle':
+        case 'ellipse':
+            return {
+                ...shape,
+                center: [shape.center[0] + dx, shape.center[1] + dy]
+            }
         default:
             break;
     }
@@ -296,22 +335,26 @@ const getPointMinMax = (segment) => {
     return { x, y };
 };
 
-export const resizePath = (segments, factor) => {
+export const resizePath = (segments, max, isIncrease) => {
     const minmax = segments.reduce((ag, seg) => {
         const ptMinMax = getPointMinMax(seg);
         return { x: joinMinMax(ag.x, ptMinMax.x), y: joinMinMax(ag.y, ptMinMax.y) };
     }, { x: { min: Number.MAX_VALUE, max: -Number.MAX_VALUE }, y: { min: Number.MAX_VALUE, max: -Number.MAX_VALUE }});
 
-    const xCenter = minmax.x.min + (minmax.x.max - minmax.x.min) / 2;
-    const yCenter = minmax.y.min + (minmax.y.max - minmax.y.min) / 2;
+    const xRange = minmax.x.max - minmax.x.min;
+    const yRange = minmax.y.max - minmax.y.min;
+    const xCenter = minmax.x.min + xRange / 2;
+    const yCenter = minmax.y.min + yRange / 2;
+    let factor = 1 + max / Math.max(xRange, yRange) * (isIncrease ? 1 : -1);
+    if (factor < 0) { factor = 1; }
 
     return segments.map(seg => seg.map((pt, i) => {
         if (i === 0) {
             return pt;
         } else if (i % 2 == 1) {
-            return Math.round(xCenter + (pt - xCenter) * factor);
+            return round(xCenter + (pt - xCenter) * factor);
         } else {
-            return Math.round(yCenter + (pt - yCenter) * factor);
+            return round(yCenter + (pt - yCenter) * factor);
         }
     }));
 };

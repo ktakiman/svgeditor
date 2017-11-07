@@ -9,6 +9,8 @@ const snap = (cur, unit, increase) => {
         cur - (cur % unit === 0 ? unit : (cur % unit));
 };
 
+const snapNotZero = (cur, unit, increase) => St.notZero(cur, snap(cur, unit, increase));
+
 const translateMove = action => {
     let isY = false;
     let isIncrease = false;
@@ -23,6 +25,10 @@ const translateMove = action => {
     return {isY, isIncrease};
 };
 
+const isReverse = action => !!action.match(/RV$/);
+const isHorizontal = action => !!action.match(/HZ$/);
+const isEnlarge = action => !!action.match(/ENLARGE/);
+
 const pointReducer = (state, action) => {
     switch (action.type) {
         case actions.POINT_MOVE_UP:
@@ -31,19 +37,37 @@ const pointReducer = (state, action) => {
         case actions.POINT_MOVE_RIGHT:
             const {isY, isIncrease} = translateMove(action.type);
             const unit = St.gridSize(state);
-            const selectedPoint = St.curShape(state).selectedPoint;
-            const xi = 1 + selectedPoint * 2;
-            const yi = 2 + selectedPoint * 2;
-            return St.updatePathSegment(state, seg => St.movePathSegment(
-                seg,
-                isY ? 0 : snap(seg[xi], unit, isIncrease) - seg[xi], 
-                isY ? snap(seg[yi], unit, isIncrease) - seg[yi] : 0,
-                selectedPoint, 
-            ));
+            return St.updateSelectedShape(state, shape => {
+                const selectedPoint = shape.selectedPoint;
+                if (shape.type === 'path') {
+                    const xi = 1 + selectedPoint * 2;
+                    const yi = 2 + selectedPoint * 2;
+                    return St.updatePathSegment(shape, seg => St.movePathSegment(
+                        seg,
+                        isY ? 0 : snap(seg[xi], unit, isIncrease) - seg[xi], 
+                        isY ? snap(seg[yi], unit, isIncrease) - seg[yi] : 0,
+                        selectedPoint, 
+                    ));
+                } else if (shape.type === 'ellipse') {
+                    return {
+                        ...shape,
+                        cx: (selectedPoint === 0 && !isY) ? snap(shape.cx, unit, isIncrease) : shape.cx,
+                        cy: (selectedPoint === 0 && isY) ? snap(shape.cy, unit, isIncrease) : shape.cy,
+                        rx: (selectedPoint === 0 && !isY) ? St.notZero(snap(shape.rx, unit, isIncrease), shape.rx) : shape.rx,
+                        ry: (selectedPoint === 0 && isY) ? St.notZero(snap(shape.ry, unit, isIncrease), shape.ry) : shape.ry,
+                    };
+                }
+            });
         case actions.POINT_CYCLE_SELECTION:
-            return St.cyclePathPoints(state, false);
         case actions.POINT_CYCLE_SELECTION_RV:
-            return St.cyclePathPoints(state, true);
+            const rv = isReverse(action.type);
+            return St.updateSelectedShape(state, shape => {
+                if (shape.type === 'path') {
+                    return St.cyclePathPoints(shape, rv);
+                } else if (shape.type === 'ellipse') {
+                    return St.cycleEllipsePoints(shape, rv);
+                }
+            });
     }
 };
 
@@ -120,29 +144,72 @@ const pathReducer = (state, action) => {
                 }
                 return shape;
             });
-        case actions.PATH_MOVE_UP:
-        case actions.PATH_MOVE_DOWN:
-        case actions.PATH_MOVE_LEFT:
-        case actions.PATH_MOVE_RIGHT:
-            const {isY, isIncrease} = translateMove(action.type);
-            const curSeg = St.curSegment(state);
-            const vPrev = curSeg[isY ? 2 : 1];
-            const vNew = snap(vPrev, St.gridSize(state), isIncrease);
-            const diff = vNew - vPrev;
-            return St.updateSelectedShape(state, shape => St.moveShape(shape, isY ? 0 : diff, isY ? diff : 0));
         default:
             return state;
     }
 };
 
+const ellipseReducer = (state, action) => {
+    switch (action.type) {
+        case actions.ELLIPSE_ENLARGE_HZ:
+        case actions.ELLIPSE_SHRINK_HZ:
+        case actions.ELLIPSE_SHRINK_VT:
+        case actions.ELLIPSE_ENLARGE_VT:
+            const isHz = isHorizontal(action.type);
+            const isIncrease = isEnlarge(action.type);
+            const grid = St.gridSize(state);
+            return St.updateSelectedShape(state, shape => ({
+                ...shape,
+                rx: isHz ? snapNotZero(shape.rx, grid, isIncrease) : shape.rx,
+                ry: isHz ? shape.ry : snapNotZero(shape.ry, grid, isIncrease),
+            }));
+        default:
+            break;
+    }
+
+    return state;
+};
+
 const shapeReducer = (state, action) => {
     switch (action.type) {
+        case actions.SHAPE_MOVE_UP:
+        case actions.SHAPE_MOVE_DOWN:
+        case actions.SHAPE_MOVE_LEFT:
+        case actions.SHAPE_MOVE_RIGHT:
+            const {isY, isIncrease} = translateMove(action.type);
+            return St.updateSelectedShape(state, shape =>  {
+                let vPrev = 0;
+                switch (shape.type) {
+                    case 'path':
+                        vPrev = shape.segments[shape.selectedSegment][isY ? 2 : 1]; 
+                        break;
+                    case 'circle':
+                    case 'ellipse':
+                        vPrev = shape.center[isY ? 1 : 0];
+                        break;
+                }
+                const vNew = snap(vPrev, St.gridSize(state), isIncrease);
+                const diff = vNew - vPrev;
+                return St.moveShape(shape, isY ? 0 : diff, isY ? diff : 0);
+            });
         case actions.SHAPE_TOGGLE_FILL:
             return St.updateSelectedShape(state, shape => ({...shape, fill: !shape.fill}));
         case actions.SHAPE_ENLARGE:
-            // assume path for now
-            return St.updateSelectedShape(state, shape => ({...shape, segments: St.resizePath(shape.segments, 1.1)}));
         case actions.SHAPE_SHRINK:
+            const increase = action.type === actions.SHAPE_ENLARGE;
+            const grid = St.gridSize(state) || 1;
+            return St.updateSelectedShape(state, shape => {
+                switch (shape.type) {
+                    case 'path':
+                        return {...shape, segments: St.resizePath(shape.segments, grid, increase)};
+                    case 'circle':
+                        return {...shape, radius: snapNotZero(shape.radius, grid, increase)};
+                    case 'ellipse':
+                        return {...shape, rx: snapNotZero(shape.rx, grid, increase), ry: snapNotZero(shape.ry, grid, increase)};
+                    default:
+                        return shape;
+                }
+             });
             // assume path for now
             return St.updateSelectedShape(state, shape => ({...shape, segments: St.resizePath(shape.segments, 1/1.1)}));
         default:
@@ -165,7 +232,25 @@ const shapesReducer = (state, action) => {
                 selectedSegment: 0,
                 closed: false,
                 fill: false,
-                segments: [['M', pos, pos], ['L', pos + 32, pos]]});
+                segments: [['M', pos, pos], ['L', pos + 32, pos]]
+            });
+        case actions.SHAPES_ADD_CIRCLE:
+            const c1 = 32 * gAddPath++;
+            return St.addShape(state, {
+                type: 'circle',
+                fill: false,
+                center: [c1, c1],
+                radius: 32,
+            });
+        case actions.SHAPES_ADD_ELLIPSE:
+            const c2 = 32 * gAddPath++;
+            return St.addShape(state, {
+                type: 'ellipse',
+                fill: false,
+                center: [c2, c2],
+                rx: 32,
+                ry: 16,
+            });
         case actions.SHAPES_DUPLICATE_SHAPE:
             return St.updateShapes(state, shapes => ({
                 ...shapes,
@@ -236,9 +321,17 @@ const modeReducer = (state, action) => {
     switch (action.type) {
         case actions.MODE_POP:
             return St.popMode(state);
-        case actions.MODE_PUSH_PATH_SELECTED:
+        case actions.MODE_PUSH_SHAPE_SELECTED:
             if (state.shapes.selected >= 0) {
-                return St.pushMode(state, modes.PATH_SELECTED);
+                switch (St.curShape(state, sh => sh.type))
+                {
+                    case 'path':
+                        return St.pushMode(state, modes.PATH_SELECTED);
+                    case 'ellipse':
+                        return St.pushMode(state, modes.ELLIPSE_SELECTED);
+                    default:
+                        break;
+                }
             }
             break;
         case actions.MODE_PUSH_RENAME_DRAWING:
@@ -319,15 +412,16 @@ const imageOverlayReducer = (state, action) => {
 };
 
 const mapReducers = [
-    { prefix: "PATH", reducer: pathReducer },
-    { prefix: "SHAPES", reducer: shapesReducer },
-    { prefix: "SHAPE", reducer: shapeReducer },
-    { prefix: "GRID", reducer: gridReducer },
-    { prefix: "MODE", reducer: modeReducer },
-    { prefix: "POINT", reducer: pointReducer },
-    { prefix: "DRAWING", reducer: drawingReducer },
-    { prefix: "IMAGE_OVERLAY", reducer: imageOverlayReducer },
-    { prefix: "ZOOM", reducer: zoomReducer },
+    { prefix: "POINT_", reducer: pointReducer },
+    { prefix: "PATH_", reducer: pathReducer },
+    { prefix: "ELLIPSE_", reducer: ellipseReducer },
+    { prefix: "SHAPE_", reducer: shapeReducer },
+    { prefix: "SHAPES_", reducer: shapesReducer },
+    { prefix: "GRID_", reducer: gridReducer },
+    { prefix: "MODE_", reducer: modeReducer },
+    { prefix: "DRAWING_", reducer: drawingReducer },
+    { prefix: "IMAGE_OVERLAY_", reducer: imageOverlayReducer },
+    { prefix: "ZOOM_", reducer: zoomReducer },
 ];
 
 export const mainReducer = (state, action) => {

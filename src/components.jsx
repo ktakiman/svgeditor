@@ -5,6 +5,14 @@ import { modes, actions } from './consts.js';
 import * as St from './state.js';
 
 const getPointRadius = (isLarge, scale) => (isLarge ? 5 : 3) / scale;
+
+const createClassNamesForShape = (isSelected, isFilled) => {
+    var classNames = ['shape'];
+    if (isSelected) { classNames.push('selected'); }
+    if (isFilled) { classNames.push('fill'); }
+    return classNames;
+}
+
 //------------------------------------------------------------------------------
 const Path = ({shape, selected, mode, scale}) => {
     let pts = [];
@@ -35,10 +43,8 @@ const Path = ({shape, selected, mode, scale}) => {
         });
     }
     const path = St.svg(shape);
-    const classNames = [];
-    if (selected) { classNames.push('selected'); }
+    const classNames = createClassNamesForShape(selected, shape.fill);
     if (shape.closed) { classNames.push('closed'); }
-    if (shape.fill) { classNames.push('fill'); }
     return (
         <g>
             <path className={classNames.join(' ')} d={path}/>
@@ -46,16 +52,48 @@ const Path = ({shape, selected, mode, scale}) => {
             {extraPts}
         </g>);
 };
-
+//------------------------------------------------------------------------------
+const Circle = ({shape, selected}) => {
+    const classNames = createClassNamesForShape(selected, shape.fill);
+    return <circle cx={shape.center[0]} cy={shape.center[1]} r={shape.radius} className={classNames.join(' ')}/>;
+}
+//------------------------------------------------------------------------------
+const Ellipse = ({shape, selected, mode, scale}) => {
+    const classNames = createClassNamesForShape(selected, shape.fill);
+    const pts = [];
+    if (selected && mode === modes.ELLIPSE_SELECTED) {
+        const ptRadius = getPointRadius(false, scale);
+        pts.push(<circle className='point selected' cx={shape.center[0]} cy={shape.center[1] + shape.ry} r={ptRadius} key='1'/>);
+        pts.push(<circle className='point selected' cx={shape.center[0] + shape.rx} cy={shape.center[1]} r={ptRadius} key='3'/>);
+    }
+    return (
+        <g>
+            <ellipse cx={shape.center[0]} cy={shape.center[1]} rx={shape.rx} ry={shape.ry} className={classNames.join(' ')}/>
+            {pts}
+        </g>);
+} 
 //------------------------------------------------------------------------------
 const Shapes = ({shapes, selected, mode, scale}) => {
     const ps = shapes.data.map((sh, i) => {
+        const isSelected = i === shapes.selected;
         switch (sh.type)
         {
             case 'path': return (
                 <Path 
                     shape={sh} 
-                    selected={i === shapes.selected} 
+                    selected={isSelected} 
+                    mode={mode} 
+                    scale={scale}
+                    key={i}/>);
+            case 'circle': return (
+                <Circle
+                    shape={sh}
+                    selected={isSelected}
+                    key={i}/>);
+            case 'ellipse': return (
+                <Ellipse
+                    shape={sh}
+                    selected={isSelected}
                     mode={mode} 
                     scale={scale}
                     key={i}/>);
@@ -133,22 +171,33 @@ const addKeyMapDOM = (map, array, keyPrefix) => {
     )));
 };
 
-let Display = ({name, persistId, mode, selectedShape, keyMapping}) => {
+let Display = ({name, persistId, mode, shape, keyMapping}) => {
     const seg = [];
-    if (selectedShape) {
-        seg.push(<div key='type'>{'TYPE: ' + selectedShape.type}</div>);
+    if (shape) {
+        seg.push(<div key='type'>{'TYPE: ' + shape.type}</div>);
 
-        const pts = selectedShape.segments.map((p, i) => {
-            const cn = 'point' + (i === selectedShape.selectedSegment ? ' selected' : '');
-            return <span className={cn} key={i}>{p.join(' ')}</span>;
-        });
-        
-        if (selectedShape.type === 'path' && selectedShape.closed) {
-            pts.push(<span className='point' key={selectedShape.segments.length}>Z</span>);
+        switch (shape.type) {
+            case 'path':
+                const pts = shape.segments.map((p, i) => {
+                    const cn = 'point' + (i === shape.selectedSegment ? ' selected' : '');
+                    return <span className={cn} key={i}>{p.join(' ')}</span>;
+                });
+                
+                if (shape.closed) {
+                    pts.push(<span className='point' key={shape.segments.length}>Z</span>);
+                }
+
+                seg.push(<div key='segments'>{pts}</div>);
+                break;
+            case 'circle':
+                seg.push(<span key='0'>{`[${shape.center[0]}, ${shape.center[1]}], r: ${shape.radius}`}</span>);
+                break;
+            case 'ellipse':
+                seg.push(<span key='1'>{`[${shape.center[0]}, ${shape.center[1]}], rx: ${shape.rx}, ry: ${shape.ry}`}</span>);
+                break;
         }
-
-        seg.push(<div key='segments'>{pts}</div>);
     }
+
     const keyMap = [];
     addKeyMapDOM(keyMapping['universal'], keyMap, 'd');
     addKeyMapDOM(keyMapping[mode], keyMap, 'm');
@@ -167,7 +216,7 @@ let Display = ({name, persistId, mode, selectedShape, keyMapping}) => {
 };
 
 Display = ReactRedux.connect(
-    state => ({ name: state.shapes.name, persistId: state.persistId, mode: St.curMode(state), selectedShape: St.curShape(state), keyMapping: state.keyMapping}),
+    state => ({ name: state.shapes.name, persistId: state.persistId, mode: St.curMode(state), shape: St.curShape(state), keyMapping: state.keyMapping}),
     dispatch => ({
     })
 )(Display);
