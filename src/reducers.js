@@ -68,6 +68,34 @@ const pointReducer = (state, action) => {
                     return St.cycleEllipsePoints(shape, rv);
                 }
             });
+        case actions.POINT_PROMOTE_BEZIER:
+            return St.updateSelectedShape(state, shape => {
+                return St.updatePathSegment(shape, seg => {
+                    switch (seg[0])
+                    {
+                        case 'L':
+                            return ['Q', seg[1], seg[2], seg[1], seg[2] - 16];
+                        case 'Q':
+                            return ['C', seg[1], seg[2], seg[3], seg[4], seg[3], seg[4] -16];
+                        default:
+                            return seg;
+                    }
+                });
+            });
+        case actions.POINT_DEMOTE_BEZIER:
+            return St.updateSelectedShape(state, shape => {
+                return St.updatePathSegment(shape, seg => {
+                    switch (seg[0])
+                    {
+                        case 'Q':
+                            return ['L', seg[1], seg[2]];
+                        case 'C':
+                            return ['Q', seg[1], seg[2], seg[3], seg[4]];
+                        default:
+                            return seg;
+                    }
+                });
+            });
     }
 };
 

@@ -119,6 +119,8 @@ export const createInitialState = () => {
                 'j': actions.POINT_MOVE_DOWN,
                 'm': actions.POINT_CYCLE_SELECTION,
                 'M': actions.POINT_CYCLE_SELECTION_RV, 
+                'p': actions.POINT_PROMOTE_BEZIER,
+                'P': actions.POINT_DEMOTE_BEZIER,
                 'z': actions.ZOOM_IN,
                 'Z': actions.ZOOM_OUT,
                 'H': actions.ZOOM_MOVE_LEFT,
@@ -274,7 +276,7 @@ export const addPathSegment = (state, createNewSegment) => updateSelectedShape(s
     }));
     
 export const updatePathSegment = (path, update) => (
-    {...pathe, segments: updateArrayItem(path.segments, path.selectedSegment, update)});
+    {...path, segments: updateArrayItem(path.segments, path.selectedSegment, update)});
 
 export const movePathSegment = (segment, dx, dy, selectedPoint) => {
     const moveAll = selectedPoint === undefined;
