@@ -246,7 +246,29 @@ const shapeReducer = (state, action) => {
     }
 }
 
-let gAddPath = 1;
+const gAddIncrement = 32;
+let gAddX = 1;
+let gAddY = 1;
+
+const getNewShapePos = containerSize => {
+    let x = gAddX * gAddIncrement;
+    let y = gAddY * gAddIncrement;
+    if (x >= containerSize[0]) {
+        x = 1 * gAddIncrement;
+        gAddX = 2;
+    } else {
+        gAddX++;
+    }
+    if (y >= containerSize[1]) {
+        y = 1 * gAddIncrement;
+        gAddY = 2;
+    } else {
+        gAddY++;
+    }
+
+    return {x , y}; 
+}
+
 
 const shapesReducer = (state, action) => {
     switch (action.type) {
@@ -255,31 +277,37 @@ const shapesReducer = (state, action) => {
         case actions.SHAPES_CYCLE_SELECTION_RV:
             return St.cycleShape(state, true);
         case actions.SHAPES_ADD_PATH:
-            const pos = 32 * gAddPath++;
-            return St.addShape(state, {
-                type: 'path',
-                selectedSegment: 0,
-                closed: false,
-                fill: false,
-                segments: [['M', pos, pos], ['L', pos + 32, pos]]
-            });
+            {
+                const {x, y} = getNewShapePos(state.containerSize);
+                return St.addShape(state, {
+                    type: 'path',
+                    selectedSegment: 0,
+                    closed: false,
+                    fill: false,
+                    segments: [['M', x, y], ['L', x + 32, y]]
+                });
+            }
         case actions.SHAPES_ADD_CIRCLE:
-            const c1 = 32 * gAddPath++;
-            return St.addShape(state, {
-                type: 'circle',
-                fill: false,
-                center: [c1, c1],
-                radius: 32,
-            });
+            {
+                const {x, y} = getNewShapePos(state.containerSize);
+                return St.addShape(state, {
+                    type: 'circle',
+                    fill: false,
+                    center: [x, y],
+                    radius: 32,
+                });
+            }
         case actions.SHAPES_ADD_ELLIPSE:
-            const c2 = 32 * gAddPath++;
-            return St.addShape(state, {
-                type: 'ellipse',
-                fill: false,
-                center: [c2, c2],
-                rx: 32,
-                ry: 16,
-            });
+            {
+                const {x, y} = getNewShapePos(state.containerSize);
+                return St.addShape(state, {
+                    type: 'ellipse',
+                    fill: false,
+                    center: [x, y],
+                    rx: 32,
+                    ry: 16,
+                });
+            }
         case actions.SHAPES_DUPLICATE_SHAPE:
             if (state.shapes.selected < 0) { return state; }
             return St.updateShapes(state, shapes => ({
