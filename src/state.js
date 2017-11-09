@@ -23,6 +23,7 @@ import { actions, modes } from './consts.js';
     drawings: [{persistId: ..., name: ...}],
     persistId: number,
     shapes: {
+        version: 1,
         name: 'name',
         selected: index,
         data: [
@@ -119,7 +120,7 @@ export const createInitialState = () => {
                 'T': actions.PATH_INSERT_POINT,
                 'Q': actions.PATH_INSERT_QUADRATIC_BEZIER,
                 'C': actions.PATH_INSERT_CUBIC_BEZIER,
-                'x': actions.PATH_DELETE_POINT,
+                'X': actions.PATH_DELETE_POINT,
                 'n': actions.PATH_CYCLE_SEGMENT_SELECTION,
                 'N': actions.PATH_CYCLE_SEGMENT_SELECTION_RV, 
                 's': actions.PATH_TOGGLE_CLOSE,
@@ -189,6 +190,7 @@ export const createInitialState = () => {
         drawings: [{persistId: persistId, name: name}],
         persistId: persistId,
         shapes: {
+            version: 1,
             name: name,
             selected: -1,
             data: [],

@@ -44,9 +44,7 @@ if (persisted.length > 0) {
         shapes: {
             ...shapes,
             imageOverlay: {
-                ...shapes.imageOverlay,
-                width: shapes.imageOverlay.width || 600,
-                height: shapes.imageOverlay.height || 400
+                ...shapes.imageOverlay
             },
         }
     };

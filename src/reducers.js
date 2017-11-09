@@ -283,6 +283,7 @@ const shapesReducer = (state, action) => {
                 return St.addShape(state, {
                     type: 'path',
                     selectedSegment: 0,
+                    selectedPoint: 0,
                     closed: false,
                     fill: false,
                     segments: [['M', x, y], ['L', x + 32, y]]
@@ -412,6 +413,8 @@ const cycleDrawing = (state, isReverse) => {
     const newId = state.drawings[newIndex].persistId;
 
     const newShapes = Psst.loadDrawing(newId);
+    newShapes.version = 1;
+
     return {...state, persistId: newId, shapes: newShapes };
 };
 
@@ -445,8 +448,8 @@ const imageOverlayReducer = (state, action) => {
             const factor = action.type === actions.IMAGE_OVERLAY_ENLARGE ? 1.1 : 1/1.1;
             return St.updateImageOverlay(state, overlay => ({
                 ...overlay, 
-                width: St.multiply(overlay.width || 600, factor, 16, 3200),
-                height: St.multiply(overlay.height || 600, factor, 16, 3200),
+                width: St.multiply(overlay.width, factor, 16, 3200),
+                height: St.multiply(overlay.height, factor, 16, 3200),
                 scale: undefined,
             }));
         }
