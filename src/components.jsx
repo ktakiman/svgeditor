@@ -116,9 +116,9 @@ const Grid = ({size, width, height}) => {
     return <g>{grid}</g>;
 }
 
-const Overlay = ({overlay, containerWidth, containerHeight}) => {
+const Overlay = ({overlay}) => {
     if (overlay.url) {
-        return <image href={overlay.url} x={overlay.left} y={overlay.top} width={containerWidth * overlay.scale} height={containerHeight * overlay.scale} style={{opacity: overlay.opacity}}/>;
+        return <image href={overlay.url} x={overlay.left} y={overlay.top} width={overlay.width} height={overlay.height} style={{opacity: overlay.opacity}}/>;
     }
 
     return null;
@@ -133,7 +133,7 @@ let SvgContainer = ({containerSize, shapes, gridSize, mode, zoom}) => {
     return (
         <svg width={width} height={height}>
             <g transform={transform}>
-                <Overlay overlay={shapes.imageOverlay} containerWidth={width} containerHeight={height}/>
+                <Overlay overlay={shapes.imageOverlay}/>
                 {gridLines}
                 <Shapes shapes={shapes} selected={shapes.selected} mode={mode} scale={zoom.scale}/>
             </g>
@@ -171,7 +171,8 @@ const addKeyMapDOM = (map, array, keyPrefix) => {
     )));
 };
 
-let Display = ({name, persistId, mode, shape, keyMapping}) => {
+let Display = ({name, persistId, mode, shape, keyMapping, display}) => {
+    if (!display.infoPaneVisible) { return null; }
     const seg = [];
     if (shape) {
         seg.push(<div key='type'>{'TYPE: ' + shape.type}</div>);
@@ -216,7 +217,7 @@ let Display = ({name, persistId, mode, shape, keyMapping}) => {
 };
 
 Display = ReactRedux.connect(
-    state => ({ name: state.shapes.name, persistId: state.persistId, mode: St.curMode(state), shape: St.curShape(state), keyMapping: state.keyMapping}),
+    state => ({ name: state.shapes.name, persistId: state.persistId, mode: St.curMode(state), shape: St.curShape(state), keyMapping: state.keyMapping, display: state.display}),
     dispatch => ({
     })
 )(Display);

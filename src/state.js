@@ -11,6 +11,9 @@ import { actions, modes } from './consts.js';
         scale: num,
         translate: [x, y],
     },
+    display: {
+        infoPaneVisible: bool,
+    },
     modes: [....],   // used as stack
     keyMapping: {
         'universal': { key1: action1, key2: action2 },
@@ -46,6 +49,8 @@ import { actions, modes } from './consts.js';
             scale: 0.1 ~ 1.0,
             left: x,
             top: y,
+            width: w,
+            height: h
         }
     }
 } 
@@ -64,6 +69,9 @@ export const createInitialState = () => {
             scale: 1,
             translate: [0, 0],
         },
+        display: {
+            infoPaneVisible: true,
+        },
         keyMapping: {
             'universal': {
             },
@@ -74,6 +82,7 @@ export const createInitialState = () => {
                 'W': actions.DRAWING_NEW,
                 'y': actions.DRAWING_CYCLE_SELECTION,
                 'Y': actions.DRAWING_CYCLE_SELECTION_RV,
+                '0': actions.DISPLAY_TOGGLE_INFO_PANE,
                 'R': actions.MODE_PUSH_RENAME_DRAWING,
                 'I': actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY,
                 'p': actions.SHAPES_ADD_PATH,
@@ -102,6 +111,7 @@ export const createInitialState = () => {
                 'G': actions.GRID_CYCLE_SIZE_RV,
                 'Escape': actions.MODE_POP,
                 'ctrl-[': actions.MODE_POP,
+                '0': actions.DISPLAY_TOGGLE_INFO_PANE,
                 'f': actions.SHAPE_TOGGLE_FILL,
                 't': actions.PATH_ADD_LINE,
                 'q': actions.PATH_ADD_QUADRATIC_BEZIER,
@@ -133,6 +143,7 @@ export const createInitialState = () => {
                 'G': actions.GRID_CYCLE_SIZE_RV,
                 'Escape': actions.MODE_POP,
                 'ctrl-[': actions.MODE_POP,
+                '0': actions.DISPLAY_TOGGLE_INFO_PANE,
                 'f': actions.SHAPE_TOGGLE_FILL,
                 '<': actions.SHAPE_ENLARGE,
                 '>': actions.SHAPE_SHRINK,
@@ -160,6 +171,7 @@ export const createInitialState = () => {
             [modes.CONFIG_IMAGE_OVERLAY]: {
                 'Escape': actions.MODE_POP,
                 'ctrl-[': actions.MODE_POP,
+                '0': actions.DISPLAY_TOGGLE_INFO_PANE,
                 'i': actions.MODE_PUSH_SET_IMAGE_URL,
                 'g': actions.GRID_CYCLE_SIZE,
                 'G': actions.GRID_CYCLE_SIZE_RV,
@@ -181,10 +193,11 @@ export const createInitialState = () => {
             selected: -1,
             data: [],
             imageOverlay: {
-                scale: 1.0,
                 opacity: 0.4,
                 left: 0,
                 top: 0,
+                width: 600,
+                height: 600
             },
         },
     };
@@ -413,3 +426,13 @@ export const enforceZoomTranslateRange = (scale, ratio) => Math.min(0, Math.max(
 export const calcMoveZoom = (curValue, size, scale, factor) => 
     increment(curValue, factor * size / (4 * scale), -(scale - 1) * size / scale, 0);
 
+
+export const getDrawingContainerSize = infoPaneVisible => {
+    const infoPaneWidth = 400;
+    const infoPaneMargin = 10; // only left margin
+    const bodyMargin = 8;
+    return [ 
+        window.innerWidth - 2 * bodyMargin - (infoPaneVisible ? infoPaneWidth + infoPaneMargin : 0),
+        window.innerHeight - 2 * bodyMargin
+    ]; 
+};

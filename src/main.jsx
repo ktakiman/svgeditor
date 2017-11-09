@@ -37,9 +37,18 @@ if (persisted.length > 0) {
     const shapes = Psst.loadDrawing(id);
     state = { 
         ...defaultState,
+        containerSize: St.getDrawingContainerSize(true),
         drawings: persisted,
         persistId: id,
-        shapes: shapes
+        //shapes: shapes
+        shapes: {
+            ...shapes,
+            imageOverlay: {
+                ...shapes.imageOverlay,
+                width: shapes.imageOverlay.width || 600,
+                height: shapes.imageOverlay.height || 400
+            },
+        }
     };
 } else {
     state = defaultState;
@@ -64,6 +73,8 @@ document.addEventListener('keydown', event => {
     
     console.log('key = ' + event.key);
 });
+
+window.addEventListener('resize', event => store.dispatch({type: actions.DRAWING_RESET_CONTAINER_SIZE}));
 
 //----------------------------------------------------------------------------------------------------
 ReactDOM.render((

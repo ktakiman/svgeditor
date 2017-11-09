@@ -2,6 +2,7 @@ import { actions, modes } from './consts.js';
 import * as St from './state.js';
 import * as Psst from './persist.js';
 
+
 const snap = (cur, unit, increase) => {
     unit = unit || 1;
     return increase ?
@@ -425,6 +426,8 @@ const drawingReducer = (state, action) => {
             return cycleDrawing(state, false);
         case actions.DRAWING_CYCLE_SELECTION_RV:
             return cycleDrawing(state, true);
+        case actions.DRAWING_RESET_CONTAINER_SIZE:
+            return {...state, containerSize: St.getDrawingContainerSize(state.display.infoPaneVisible)};
         default:
             break;
     }
@@ -435,13 +438,16 @@ const drawingReducer = (state, action) => {
 const imageOverlayReducer = (state, action) => {
     switch (action.type) {
         case actions.IMAGE_OVERLAY_SET_URL:
-            return St.updateImageOverlay(state, overlay => ({...overlay, url: action.url})); case actions.IMAGE_OVERLAY_ENLARGE:
+            return St.updateImageOverlay(state, overlay => ({...overlay, url: action.url})); 
+        case actions.IMAGE_OVERLAY_ENLARGE:
         case actions.IMAGE_OVERLAY_SHRINK:
         {
-            const delta = action.type === actions.IMAGE_OVERLAY_ENLARGE ? 0.1 : -0.1;
+            const factor = action.type === actions.IMAGE_OVERLAY_ENLARGE ? 1.1 : 1/1.1;
             return St.updateImageOverlay(state, overlay => ({
                 ...overlay, 
-                scale: St.increment(overlay.scale, delta, 0.1, 10.0)
+                width: St.multiply(overlay.width || 600, factor, 16, 3200),
+                height: St.multiply(overlay.height || 600, factor, 16, 3200),
+                scale: undefined,
             }));
         }
         case actions.IMAGE_OVERLAY_MORE_OPAQUE:
@@ -470,6 +476,22 @@ const imageOverlayReducer = (state, action) => {
     return state;
 };
 
+const displayReducer = (state, action) => {
+    switch (action.type)
+    {
+        case actions.DISPLAY_TOGGLE_INFO_PANE:
+            const visible = !state.display.infoPaneVisible;
+            return {
+                ...state, 
+                display: {...state.display, infoPaneVisible: visible}, 
+                containerSize: St.getDrawingContainerSize(visible),
+            };
+        default:
+            break;
+    }
+    return state;
+};
+
 const mapReducers = [
     { prefix: "POINT_", reducer: pointReducer },
     { prefix: "PATH_", reducer: pathReducer },
@@ -481,6 +503,7 @@ const mapReducers = [
     { prefix: "DRAWING_", reducer: drawingReducer },
     { prefix: "IMAGE_OVERLAY_", reducer: imageOverlayReducer },
     { prefix: "ZOOM_", reducer: zoomReducer },
+    { prefix: "DISPLAY_", reducer: displayReducer }
 ];
 
 export const mainReducer = (state, action) => {
