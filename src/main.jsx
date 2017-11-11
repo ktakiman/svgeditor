@@ -29,28 +29,14 @@ const middleware = Redux.applyMiddleware(logger);
 
 const defaultState = St.createInitialState();
 
-let state;
-const persisted = Psst.listDrawings();
+const drawing = Psst.loadFirstOrNewDrawing();
 
-if (persisted.length > 0) {
-    const id = persisted[0].persistId;
-    const shapes = Psst.loadDrawing(id);
-    state = { 
-        ...defaultState,
-        containerSize: St.getDrawingContainerSize(true),
-        drawings: persisted,
-        persistId: id,
-        //shapes: shapes
-        shapes: {
-            ...shapes,
-            imageOverlay: {
-                ...shapes.imageOverlay
-            },
-        }
-    };
-} else {
-    state = defaultState;
-}
+const state = { 
+    ...defaultState,
+    containerSize: St.getDrawingContainerSize(true),
+    persistId: drawing.persistId,
+    shapes: drawing.shapes,
+};
 
 const store = Redux.createStore(mainReducer, state, middleware);
 

@@ -407,30 +407,30 @@ const modeReducer = (state, action) => {
     return state;
 };
 
-const cycleDrawing = (state, isReverse) => {
-    const curIndex = state.drawings.findIndex(d => d.persistId === state.persistId);
-    const newIndex = St.cycle(state.drawings.length, curIndex, isReverse);
-    const newId = state.drawings[newIndex].persistId;
-
-    const newShapes = Psst.loadDrawing(newId);
-    newShapes.version = 1;
-
-    return {...state, persistId: newId, shapes: newShapes };
-};
-
 const drawingReducer = (state, action) => {
     switch (action.type) {
         case actions.DRAWING_SET_NAME:
             return {...state, shapes: {...state.shapes, name: action.name }};
         case actions.DRAWING_NEW:
-            var newState = St.createInitialState();
-            return {...state, drawings: [...state.drawings, ...newState.drawings], persistId: newState.persistId, shapes: newState.shapes};
+            const newDrawing = Psst.createNewDrawing();
+            return {...state, persistId: newDrawing.persistId, shapes: newDrawing.shapes};
         case actions.DRAWING_CYCLE_SELECTION:
-            return cycleDrawing(state, false);
+        {
+            const drawing = Psst.loadNextDrawing(state.persistId, false);
+            return {...state, persistId: drawing.persistId, shapes: drawing.shapes };
+        }
         case actions.DRAWING_CYCLE_SELECTION_RV:
-            return cycleDrawing(state, true);
+        {
+            const drawing = Psst.loadNextDrawing(state.persistId, true);
+            return {...state, persistId: drawing.persistId, shapes: drawing.shapes };
+        }
         case actions.DRAWING_RESET_CONTAINER_SIZE:
             return {...state, containerSize: St.getDrawingContainerSize(state.display.infoPaneVisible)};
+        case actions.DRAWING_DELETE:
+            if (window.confirm("Are you sure that you want to delete this drawing?")) {
+                const drawing = Psst.deleteDrawing(state.persistId);
+                return {...state, persistId: drawing.persistId, shapes: drawing.shapes};
+            }
         default:
             break;
     }

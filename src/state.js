@@ -20,7 +20,6 @@ import { actions, modes } from './consts.js';
         mode1: { key1: action1, key2: action2 },
         mode2: { key1: action1, key2: action2 },
     },
-    drawings: [{persistId: ..., name: ...}],
     persistId: number,
     shapes: {
         version: 1,
@@ -81,6 +80,7 @@ export const createInitialState = () => {
                 'G': actions.GRID_CYCLE_SIZE_RV,
                 ' ': actions.MODE_PUSH_SHAPE_SELECTED,
                 'W': actions.DRAWING_NEW,
+                '!': actions.DRAWING_DELETE,
                 'y': actions.DRAWING_CYCLE_SELECTION,
                 'Y': actions.DRAWING_CYCLE_SELECTION_RV,
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
@@ -187,7 +187,6 @@ export const createInitialState = () => {
             },
         },
         modes: [ modes.TOP ],
-        drawings: [{persistId: persistId, name: name}],
         persistId: persistId,
         shapes: {
             version: 1,

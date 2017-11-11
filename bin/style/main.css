@@ -1,10 +1,12 @@
 body { font-family: consola, monospace; }
 svg { background-color: #e0e0d0; }
 h1, h2, h3 { margin: 0; }
-input { font-family: inherit; font-size: inherit; }
+input { font-family: inherit; font-size: inherit; margin-top: 5px; }
 table { font-size: inherit; }
 
 line, path, circle, ellipse { vector-effect: non-scaling-stroke; }
+
+
 
 .shape { stroke: navy; fill: none; }
 .shape.selected { storoke: navy; stroke-width: 3; }
