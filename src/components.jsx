@@ -174,47 +174,63 @@ const addKeyMapDOM = (map, array, keyPrefix) => {
     }
 };
 
-let Display = ({name, persistId, mode, shape, keyMapping, display}) => {
-    if (!display.infoPaneVisible) { return null; }
-    const seg = [];
-    if (shape) {
-        seg.push(<div key='type'>{'TYPE: ' + shape.type}</div>);
+const shapeInfoMarkup = shape => {
+    let seg = [];
 
-        switch (shape.type) {
-            case 'path':
-                const pts = shape.segments.map((p, i) => {
-                    const cn = 'point' + (i === shape.selectedSegment ? ' selected' : '');
-                    return <span className={cn} key={i}>{p.join(' ')}</span>;
-                });
-                
-                if (shape.closed) {
-                    pts.push(<span className='point' key={shape.segments.length}>Z</span>);
-                }
+    switch (shape.type) {
+        case 'path':
+            seg = shape.segments.map((p, i) => {
+                const cn = 'point' + (i === shape.selectedSegment ? ' selected' : '');
+                return <span className={cn} key={i}>{p.join(' ')}</span>;
+            });
+            
+            if (shape.closed) {
+                seg.push(<span className='point' key={shape.segments.length}>Z</span>);
+            }
 
-                seg.push(<div key='segments'>{pts}</div>);
-                break;
-            case 'circle':
-                seg.push(<span key='0'>{`[${shape.center[0]}, ${shape.center[1]}], r: ${shape.radius}`}</span>);
-                break;
-            case 'ellipse':
-                seg.push(<span key='1'>{`[${shape.center[0]}, ${shape.center[1]}], rx: ${shape.rx}, ry: ${shape.ry}`}</span>);
-                break;
-        }
+            break;
+        case 'circle':
+            seg.push(<span key='0'>{`[${shape.center[0]}, ${shape.center[1]}], r: ${shape.radius}`}</span>);
+            break;
+        case 'ellipse':
+            seg.push(<span key='1'>{`[${shape.center[0]}, ${shape.center[1]}], rx: ${shape.rx}, ry: ${shape.ry}`}</span>);
+            break;
     }
 
+    return (
+        <div>
+            <h2>{'Selected: ' + shape.type}</h2>
+            <div className='margin-top'>
+                {seg}
+            </div>
+        </div>);
+};
+
+const keyboardMappingMarkup = (keyMapping, mode) => {
     const keyMap = [];
     addKeyMapDOM(keyMapping['universal'], keyMap, 'd');
     addKeyMapDOM(keyMapping[mode], keyMap, 'm');
-    
     return (
-        <div className='display'>
-            <h2 className='filename'>{name + " (" + persistId + ")"}</h2>
-            <h2>{mode}</h2>
-            <div>{seg}</div>
+        <div>
             <h2>Keyboard Mapping</h2>
             <table className='keyboard-mapping'><tbody>
                 {keyMap}
             </tbody></table>
+        </div>); 
+};
+
+let Display = ({name, persistId, mode, shape, keyMapping, display}) => {
+    if (!display.infoPaneVisible) { return null; }
+    
+    const shapeInfo = (display.selectedShapeVisible && shape) ? shapeInfoMarkup(shape) : null;
+    const keymap = display.keyboardMappingVisible ? keyboardMappingMarkup(keyMapping, mode) : null;
+
+    return (
+        <div className='display'>
+            <h2 className='filename'>{name + " (" + persistId + ")"}</h2>
+            <h2>{'mode: ' + mode}</h2>
+            {shapeInfo}
+            {keymap}
         </div>
     );
 };

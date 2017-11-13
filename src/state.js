@@ -13,6 +13,8 @@ import { actions, modes } from './consts.js';
     },
     display: {
         infoPaneVisible: bool,
+        selectedShapeVisible: bool,
+        keyboardMappingVisible: bool,
     },
     modes: [....],   // used as stack
     keyMapping: {
@@ -71,6 +73,8 @@ export const createInitialState = () => {
         },
         display: {
             infoPaneVisible: true,
+            selectedShapeVisible: true,
+            keyboardMappingVisible: true,
         },
         keyMapping: {
             'universal': {
@@ -84,6 +88,8 @@ export const createInitialState = () => {
                 'y': actions.DRAWING_CYCLE_SELECTION,
                 'Y': actions.DRAWING_CYCLE_SELECTION_RV,
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
+                '1': actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO,
+                '2': actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING,
                 'R': actions.MODE_PUSH_RENAME_DRAWING,
                 'I': actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY,
                 'S': actions.MODE_PUSH_SHOW_ENTIRE_SVG,
@@ -114,6 +120,8 @@ export const createInitialState = () => {
                 'Escape': actions.MODE_POP,
                 'ctrl-[': actions.MODE_POP,
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
+                '1': actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO,
+                '2': actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING,
                 'f': actions.SHAPE_TOGGLE_FILL,
                 't': actions.PATH_ADD_LINE,
                 'q': actions.PATH_ADD_QUADRATIC_BEZIER,
@@ -146,6 +154,8 @@ export const createInitialState = () => {
                 'Escape': actions.MODE_POP,
                 'ctrl-[': actions.MODE_POP,
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
+                '1': actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO,
+                '2': actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING,
                 'f': actions.SHAPE_TOGGLE_FILL,
                 '<': actions.SHAPE_ENLARGE,
                 '>': actions.SHAPE_SHRINK,
@@ -174,6 +184,8 @@ export const createInitialState = () => {
                 'Escape': actions.MODE_POP,
                 'ctrl-[': actions.MODE_POP,
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
+                '1': actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO,
+                '2': actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING,
                 'i': actions.MODE_PUSH_SET_IMAGE_URL,
                 'g': actions.GRID_CYCLE_SIZE,
                 'G': actions.GRID_CYCLE_SIZE_RV,
@@ -447,3 +459,7 @@ export const getDrawingContainerSize = infoPaneVisible => {
         window.innerHeight - 2 * bodyMargin
     ]; 
 };
+
+//display
+export const updateDisplay = (state, update) => ({...state, display: update(state.display)});
+

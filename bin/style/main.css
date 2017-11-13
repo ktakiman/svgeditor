@@ -27,8 +27,10 @@ line, path, circle, ellipse { vector-effect: non-scaling-stroke; }
 .display .point.selected { font-weight: bold; color: #ff5733; } 
 .display .point:not(:last-child) { margin-right: 10px; }
 
-.display .keyboard-mapping {  }
+.display .keyboard-mapping { margin-top: 0.5em; }
 .display .keyboard-mapping .col-one { padding-right: 10px; }
+
+.display .margin-top { margin-top: 0.5em; }
 
 /* dialogs */
 .dlg-overlay { 

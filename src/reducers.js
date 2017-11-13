@@ -491,6 +491,10 @@ const displayReducer = (state, action) => {
                 display: {...state.display, infoPaneVisible: visible}, 
                 containerSize: St.getDrawingContainerSize(visible),
             };
+        case actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO:
+            return St.updateDisplay(state, display => ({...display, selectedShapeVisible: !display.selectedShapeVisible}));
+        case actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING:
+            return St.updateDisplay(state, display => ({...display, keyboardMappingVisible: !display.keyboardMappingVisible}));
         default:
             break;
     }
