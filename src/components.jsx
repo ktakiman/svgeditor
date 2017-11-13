@@ -42,7 +42,7 @@ const Path = ({shape, selected, mode, scale}) => {
             return <circle className={className.join(' ')} cx={x} cy={y} r={getPointRadius(largePt, scale)} key={i}/>;
         });
     }
-    const path = St.svg(shape);
+    const path = St.pathSvgData(shape);
     const classNames = createClassNamesForShape(selected, shape.fill);
     if (shape.closed) { classNames.push('closed'); }
     return (
@@ -165,10 +165,13 @@ const displayContents = {
 };
 
 const addKeyMapDOM = (map, array, keyPrefix) => {
-    array.push.apply(array, Object.keys(map).map((k, i) => (
-        //<p key={keyPrefix+i}><span className='key'>{'\'' + k + '\''}</span> - {map[k]}</p>
-        <tr key={keyPrefix+i}><td key='c1' className='col-one'>{'\'' + k + '\''}</td><td key='c2'>{map[k]}</td></tr>
-    )));
+    if (map) {
+        array.push.apply(array, Object.keys(map).map((k, i) => (
+            <tr key={keyPrefix+i}><td key='c1' className='col-one'>{'\'' + k + '\''}</td><td key='c2'>{map[k]}</td></tr>
+        )));
+    } else {
+        console.log(`ERROR: no mapping for ${keyPrefix}`);
+    }
 };
 
 let Display = ({name, persistId, mode, shape, keyMapping, display}) => {
@@ -223,18 +226,26 @@ Display = ReactRedux.connect(
 )(Display);
 
 
-let Dialog = ({mode, name, imgUrl, setName, setImgUrl}) => {
-    let header, value, callback;
-    switch (mode) {
+let Dialog = ({state, setName, setImgUrl}) => {
+    let type, header, value, callback;
+    switch (St.curMode(state)) {
         case modes.RENAME_DRAWING:
+            type = 'input';
             header = 'Name:';
-            value = name;
+            value = state.shapes.name;
             callback = setName;
             break;
         case modes.SET_IMAGE_URL:
+            type = 'input';
             header = 'URL:';
-            value = imgUrl;
+            value = state.shapes.imageOverlay.url;
             callback = setImgUrl;
+            break;
+        case modes.SHOW_ENTIRE_SVG:
+            type = 'input';
+            header = 'SVG';
+            value = St.svgMarkup(state);
+            callback = () => {};
             break;
         default:
             break;
@@ -256,7 +267,7 @@ let Dialog = ({mode, name, imgUrl, setName, setImgUrl}) => {
 };
 
 Dialog = ReactRedux.connect(
-    state => ({ mode: St.curMode(state), name: state.shapes.name, imgUrl: state.shapes.imageOverlay.url }),
+    state => ({ state }),
     dispatch => ({ 
         setName: evt => dispatch({ type: actions.DRAWING_SET_NAME, name: evt.target.value }),
         setImgUrl: evt => dispatch({ type: actions.IMAGE_OVERLAY_SET_URL, url: evt.target.value }),

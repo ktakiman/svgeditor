@@ -401,6 +401,8 @@ const modeReducer = (state, action) => {
             return St.pushMode(state, modes.CONFIG_IMAGE_OVERLAY);
         case actions.MODE_PUSH_SET_IMAGE_URL:
             return St.pushMode(state, modes.SET_IMAGE_URL);
+        case actions.MODE_PUSH_SHOW_ENTIRE_SVG:
+            return St.pushMode(state, modes.SHOW_ENTIRE_SVG);
         default:
             break;
     }

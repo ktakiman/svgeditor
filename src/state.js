@@ -86,6 +86,7 @@ export const createInitialState = () => {
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
                 'R': actions.MODE_PUSH_RENAME_DRAWING,
                 'I': actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY,
+                'S': actions.MODE_PUSH_SHOW_ENTIRE_SVG,
                 'p': actions.SHAPES_ADD_PATH,
                 'c': actions.SHAPES_ADD_CIRCLE,
                 'e': actions.SHAPES_ADD_ELLIPSE,
@@ -185,6 +186,10 @@ export const createInitialState = () => {
                 'k': actions.IMAGE_OVERLAY_MOVE_UP,
                 'j': actions.IMAGE_OVERLAY_MOVE_DOWN,
             },
+            [modes.SHOW_ENTIRE_SVG] : {
+                'Escape': actions.MODE_POP,
+                'ctrl-[': actions.MODE_POP,
+            }
         },
         modes: [ modes.TOP ],
         persistId: persistId,
@@ -374,7 +379,7 @@ export const resizePath = (segments, max, isIncrease) => {
 };
 
 // svg
-const pathSvg = path => {
+export const pathSvgData = path => {
     let svg = path.segments.map(s => {
         switch (s[0]) {
             case 'M':
@@ -391,17 +396,22 @@ const pathSvg = path => {
     return svg;
 };
 
-export const svg  = shape => {
-    let svg = '';
-    switch (shape.type) {
-        case 'path':
-            svg = pathSvg(shape);        
-            break;
-        default:
-            break;
-    }
-    return svg;
-};
+export const svgMarkup = state => {
+    const shapes = state.shapes.data.map(s => {
+        switch (s.type) {
+            case 'path':
+                return `<path d='${pathSvgData(s)}'/>`;
+            case 'circle':
+                return `<circle cx='${s.center[0]}' cy='${s.center[1]}' r='${s.radius}'/>`;
+            case 'ellipse':
+                return `<ellipse cx='${s.center[0]}' cy='${s.center[1]}' rx='${s.rx}' ry='${s.ry}'/>`;
+            default:
+                return '';
+        }
+    }).join('');
+
+    return `<svg width='${state.containerSize[0]}' height='${state.containerSize[1]}'><g>${shapes}</g></svg>`;
+}
 
 // mode
 export const curMode = state => state.modes[state.modes.length - 1];
