@@ -219,14 +219,15 @@ const keyboardMappingMarkup = (keyMapping, mode) => {
         </div>); 
 };
 
-let Display = ({name, persistId, mode, shape, keyMapping, display}) => {
+let Display = ({name, persistId, mode, shape, keyMapping, display, containerSize}) => {
     if (!display.infoPaneVisible) { return null; }
     
     const shapeInfo = (display.selectedShapeVisible && shape) ? shapeInfoMarkup(shape) : null;
     const keymap = display.keyboardMappingVisible ? keyboardMappingMarkup(keyMapping, mode) : null;
 
+    const style = { height: containerSize[1]};
     return (
-        <div className='display'>
+        <div className='display' style={style}>
             <h2 className='filename'>{name + " (" + persistId + ")"}</h2>
             <h2>{'mode: ' + mode}</h2>
             {shapeInfo}
@@ -236,7 +237,14 @@ let Display = ({name, persistId, mode, shape, keyMapping, display}) => {
 };
 
 Display = ReactRedux.connect(
-    state => ({ name: state.shapes.name, persistId: state.persistId, mode: St.curMode(state), shape: St.curShape(state), keyMapping: state.keyMapping, display: state.display}),
+    state => ({ 
+        name: state.shapes.name, 
+        persistId: state.persistId, 
+        mode: St.curMode(state), 
+        shape: St.curShape(state), 
+        keyMapping: state.keyMapping, 
+        display: state.display, 
+        containerSize: state.containerSize }),
     dispatch => ({
     })
 )(Display);

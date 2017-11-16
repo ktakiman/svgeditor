@@ -20,7 +20,7 @@ line, path, circle, ellipse { vector-effect: non-scaling-stroke; }
 
 .svg-container { float: left; position: relative; } /* made relative for image-overlay div */
 
-.display { padding-left: 10px; vertical-align: top; height: 100%; overflow: hidden; font-size: 70%;}
+.display { padding-left: 10px; vertical-align: top; overflow: auto; font-size: 70%;}
 .display > *:not(:first-child) { margin-top: 1em; }
 .display .filename { font-style: italic; }
 .display .point { white-space: nowrap; display:inline-block; }
