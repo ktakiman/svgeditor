@@ -84,6 +84,7 @@ export const createInitialState = () => {
                 'G': actions.GRID_CYCLE_SIZE_RV,
                 ' ': actions.MODE_PUSH_SHAPE_SELECTED,
                 'W': actions.DRAWING_NEW,
+                '*': actions.DRAWING_DUPLICATE,
                 '!': actions.DRAWING_DELETE,
                 'y': actions.DRAWING_CYCLE_SELECTION,
                 'Y': actions.DRAWING_CYCLE_SELECTION_RV,

@@ -414,8 +414,15 @@ const drawingReducer = (state, action) => {
         case actions.DRAWING_SET_NAME:
             return {...state, shapes: {...state.shapes, name: action.name }};
         case actions.DRAWING_NEW:
+        {
             const newDrawing = Psst.createNewDrawing();
             return {...state, persistId: newDrawing.persistId, shapes: newDrawing.shapes};
+        }
+        case actions.DRAWING_DUPLICATE:
+        {
+            const newDrawing = Psst.createNewDrawing();
+            return {...state, persistId: newDrawing.persistId, shapes: {...state.shapes, name: newDrawing.shapes.name}};
+        }
         case actions.DRAWING_CYCLE_SELECTION:
         {
             const drawing = Psst.loadNextDrawing(state.persistId, false);
