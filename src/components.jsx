@@ -2,6 +2,7 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 
 import { modes, actions } from './consts.js';
+import { res } from './res.js';
 import * as St from './state.js';
 
 const getPointRadius = (isLarge, scale) => (isLarge ? 5 : 3) / scale;
@@ -166,9 +167,10 @@ const displayContents = {
 
 const addKeyMapDOM = (map, array, keyPrefix) => {
     if (map) {
-        array.push.apply(array, Object.keys(map).map((k, i) => (
-            <tr key={keyPrefix+i}><td key='c1' className='col-one'>{'\'' + k + '\''}</td><td key='c2'>{map[k]}</td></tr>
-        )));
+        array.push.apply(array, Object.keys(map).map((k, i) => {
+            const txt = res.kbdMap[map[k]] || map[k];
+            return <tr key={keyPrefix+i}><td key='c1' className='col-one'>{'\'' + k + '\''}</td><td key='c2'>{txt}</td></tr>;
+        }));
     } else {
         console.log(`ERROR: no mapping for ${keyPrefix}`);
     }

@@ -69,34 +69,6 @@ const pointReducer = (state, action) => {
                     return St.cycleEllipsePoints(shape, rv);
                 }
             });
-        case actions.POINT_PROMOTE_BEZIER:
-            return St.updateSelectedShape(state, shape => {
-                return St.updatePathSegment(shape, seg => {
-                    switch (seg[0])
-                    {
-                        case 'L':
-                            return ['Q', seg[1], seg[2], seg[1], seg[2] - 16];
-                        case 'Q':
-                            return ['C', seg[1], seg[2], seg[3], seg[4], seg[3], seg[4] -16];
-                        default:
-                            return seg;
-                    }
-                });
-            });
-        case actions.POINT_DEMOTE_BEZIER:
-            return St.updateSelectedShape(state, shape => {
-                return St.updatePathSegment(shape, seg => {
-                    switch (seg[0])
-                    {
-                        case 'Q':
-                            return ['L', seg[1], seg[2]];
-                        case 'C':
-                            return ['Q', seg[1], seg[2], seg[3], seg[4]];
-                        default:
-                            return seg;
-                    }
-                });
-            });
     }
 };
 
@@ -120,7 +92,7 @@ const pathReducer = (state, action) => {
                 lastSeg[1] + 32, lastSeg[2], 
                 lastSeg[1] + 8, lastSeg[2], 
                 lastSeg[1] + 24, lastSeg[2]]);
-        case actions.PATH_INSERT_POINT:
+        case actions.PATH_INSERT_LINE:
         case actions.PATH_INSERT_QUADRATIC_BEZIER:
         case actions.PATH_INSERT_CUBIC_BEZIER:
             return St.updateSelectedShape(state, shape => {
@@ -142,7 +114,7 @@ const pathReducer = (state, action) => {
 
                 switch (action.type)
                 {
-                    case actions.PATH_INSERT_POINT:
+                    case actions.PATH_INSERT_LINE:
                         newPt = ['L', x, y];
                         break;
                     case actions.PATH_INSERT_QUADRATIC_BEZIER:
@@ -160,7 +132,7 @@ const pathReducer = (state, action) => {
                     segments: St.insertAt(shape.segments, shape.selectedSegment, St.roundSegment(newPt))
                 };
             });
-        case actions.PATH_DELETE_POINT:
+        case actions.PATH_DELETE_SEGMENT:
             return St.updateSelectedShape(state, shape => {
                 if (shape.segments.length > 2) {
                     let newSegments = St.sliceOther(shape.segments, shape.selectedSegment);
@@ -172,6 +144,34 @@ const pathReducer = (state, action) => {
                    }
                 }
                 return shape;
+            });
+        case actions.PATH_PROMOTE_BEZIER:
+            return St.updateSelectedShape(state, shape => {
+                return St.updatePathSegment(shape, seg => {
+                    switch (seg[0])
+                    {
+                        case 'L':
+                            return ['Q', seg[1], seg[2], seg[1], seg[2] - 16];
+                        case 'Q':
+                            return ['C', seg[1], seg[2], seg[3], seg[4], seg[3], seg[4] -16];
+                        default:
+                            return seg;
+                    }
+                });
+            });
+        case actions.PATH_DEMOTE_BEZIER:
+            return St.updateSelectedShape(state, shape => {
+                return St.updatePathSegment(shape, seg => {
+                    switch (seg[0])
+                    {
+                        case 'Q':
+                            return ['L', seg[1], seg[2]];
+                        case 'C':
+                            return ['Q', seg[1], seg[2], seg[3], seg[4]];
+                        default:
+                            return seg;
+                    }
+                });
             });
         default:
             return state;
