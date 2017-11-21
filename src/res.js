@@ -21,6 +21,8 @@ export const res = {
         [actions.DRAWING_DUPLICATE] : 'duplicate current drawing',
         [actions.DRAWING_CYCLE_SELECTION] : 'switch to next drawing',
         [actions.DRAWING_CYCLE_SELECTION_RV] : 'switch to previous drawing',
+        [actions.DRAWING_UNDO] : 'undo',
+        [actions.DRAWING_REDO] : 'redo',
         [actions.DISPLAY_TOGGLE_INFO_PANE] : 'show/hide info pane',
         [actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO] : 'show/hide selected shape info',
         [actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING] : 'show/hide keyboard mapping', 

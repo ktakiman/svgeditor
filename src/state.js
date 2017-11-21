@@ -23,6 +23,10 @@ import { actions, modes } from './consts.js';
         mode2: { key1: action1, key2: action2 },
     },
     persistId: number,
+    undo: {
+        pos: index,
+        stack: [...],
+    }
     shapes: {
         version: 1,
         name: 'name',
@@ -83,15 +87,17 @@ export const createInitialState = () => {
                 'g': actions.GRID_CYCLE_SIZE,
                 'G': actions.GRID_CYCLE_SIZE_RV,
                 ' ': actions.MODE_PUSH_SHAPE_SELECTED,
-                'W': actions.DRAWING_NEW,
+                '+': actions.DRAWING_NEW,
                 '*': actions.DRAWING_DUPLICATE,
                 '!': actions.DRAWING_DELETE,
                 'y': actions.DRAWING_CYCLE_SELECTION,
                 'Y': actions.DRAWING_CYCLE_SELECTION_RV,
+                'u': actions.DRAWING_UNDO,
+                'r': actions.DRAWING_REDO,
+                'R': actions.MODE_PUSH_RENAME_DRAWING,
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
                 '1': actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO,
                 '2': actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING,
-                'R': actions.MODE_PUSH_RENAME_DRAWING,
                 'I': actions.MODE_PUSH_CONFIG_IMAGE_OVERLAY,
                 'S': actions.MODE_PUSH_SHOW_ENTIRE_SVG,
                 'p': actions.SHAPES_ADD_PATH,
@@ -123,6 +129,8 @@ export const createInitialState = () => {
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
                 '1': actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO,
                 '2': actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING,
+                'u': actions.DRAWING_UNDO,
+                'r': actions.DRAWING_REDO,
                 'f': actions.SHAPE_TOGGLE_FILL,
                 't': actions.PATH_ADD_LINE,
                 'q': actions.PATH_ADD_QUADRATIC_BEZIER,
@@ -157,6 +165,8 @@ export const createInitialState = () => {
                 '0': actions.DISPLAY_TOGGLE_INFO_PANE,
                 '1': actions.DISPLAY_TOGGLE_SELECTED_SHAPE_INFO,
                 '2': actions.DISPLAY_TOGGLE_KEYBOARD_MAPPING,
+                'u': actions.DRAWING_UNDO,
+                'r': actions.DRAWING_REDO,
                 'f': actions.SHAPE_TOGGLE_FILL,
                 '<': actions.SHAPE_ENLARGE,
                 '>': actions.SHAPE_SHRINK,
@@ -206,6 +216,10 @@ export const createInitialState = () => {
         },
         modes: [ modes.TOP ],
         persistId: persistId,
+        undo: {
+            pos: 0,
+            stack: [],
+        },
         shapes: {
             version: 1,
             name: name,
@@ -464,3 +478,22 @@ export const getDrawingContainerSize = infoPaneVisible => {
 //display
 export const updateDisplay = (state, update) => ({...state, display: update(state.display)});
 
+const UNDO_STACK_SIZE = 100; // make this configurable?
+
+//undo-redo
+
+export const appendToUndo = state => { 
+    const undo = { 
+        pos: state.undo.pos + 1, 
+        stack: [...state.undo.stack.slice(0, state.undo.pos + 1), state.shapes],
+    };
+
+    if (undo.stack.length > UNDO_STACK_SIZE) {
+        undo.pos--;
+        undo.stack.shift();
+    }
+
+    return {...state, undo: undo};
+}
+
+//export const updateUndo

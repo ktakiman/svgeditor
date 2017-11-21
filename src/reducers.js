@@ -1,4 +1,4 @@
-import { actions, modes } from './consts.js'; 
+import { actions, modes, undoables } from './consts.js'; 
 import * as St from './state.js';
 import * as Psst from './persist.js';
 
@@ -133,8 +133,8 @@ const pathReducer = (state, action) => {
                 };
             });
         case actions.PATH_DELETE_SEGMENT:
-            return St.updateSelectedShape(state, shape => {
-                if (shape.segments.length > 2) {
+            if (St.curShape(state).segments.length > 2) {
+                return St.updateSelectedShape(state, shape => {
                     let newSegments = St.sliceOther(shape.segments, shape.selectedSegment);
                     newSegments = St.updateArrayItem(newSegments, 0, segments => St.updateArrayItem(segments, 0, act => 'M'));
                     return {
@@ -142,9 +142,9 @@ const pathReducer = (state, action) => {
                         selectedSegment: St.shiftIndex(shape.selectedSegment, shape.segments.length),
                         segments: newSegments
                    }
-                }
-                return shape;
-            });
+                });
+            }
+            break;
         case actions.PATH_PROMOTE_BEZIER:
             return St.updateSelectedShape(state, shape => {
                 return St.updatePathSegment(shape, seg => {
@@ -412,34 +412,69 @@ const modeReducer = (state, action) => {
 const drawingReducer = (state, action) => {
     switch (action.type) {
         case actions.DRAWING_SET_NAME:
-            return {...state, shapes: {...state.shapes, name: action.name }};
+            return {...state, shapes: {...state.shapes, name: action.name}};
         case actions.DRAWING_NEW:
         {
             const newDrawing = Psst.createNewDrawing();
-            return {...state, persistId: newDrawing.persistId, shapes: newDrawing.shapes};
+            return {
+                ...state, 
+                persistId: newDrawing.persistId, 
+                undo: newDrawing.undo,
+                shapes: newDrawing.shapes
+            };
         }
         case actions.DRAWING_DUPLICATE:
         {
             const newDrawing = Psst.createNewDrawing();
-            return {...state, persistId: newDrawing.persistId, shapes: {...state.shapes, name: newDrawing.shapes.name}};
+            return {
+                ...state, 
+                persistId: newDrawing.persistId, 
+                undo: newDrawing.undo,
+                shapes: {...state.shapes, name: newDrawing.shapes.name}
+            };
         }
         case actions.DRAWING_CYCLE_SELECTION:
-        {
-            const drawing = Psst.loadNextDrawing(state.persistId, false);
-            return {...state, persistId: drawing.persistId, shapes: drawing.shapes };
-        }
         case actions.DRAWING_CYCLE_SELECTION_RV:
         {
-            const drawing = Psst.loadNextDrawing(state.persistId, true);
-            return {...state, persistId: drawing.persistId, shapes: drawing.shapes };
+            const drawing = Psst.loadNextDrawing(state.persistId, action.type === actions.DRAWING_CYCLE_SELECTION_RV);
+            return {
+                ...state, 
+                persistId: drawing.persistId, 
+                undo: drawing.undo,
+                shapes: drawing.shapes 
+            };
         }
         case actions.DRAWING_RESET_CONTAINER_SIZE:
             return {...state, containerSize: St.getDrawingContainerSize(state.display.infoPaneVisible)};
         case actions.DRAWING_DELETE:
             if (window.confirm("Are you sure that you want to delete this drawing?")) {
                 const drawing = Psst.deleteDrawing(state.persistId);
-                return {...state, persistId: drawing.persistId, shapes: drawing.shapes};
+                return {
+                    ...state, 
+                    persistId: drawing.persistId, 
+                    undo: drawing.undo,
+                    shapes: drawing.shapes
+                };
             }
+            break;
+        case actions.DRAWING_UNDO:
+            if (state.undo.pos > 0) {
+                return {
+                    ...state,
+                    undo: { ...state.undo, pos: state.undo.pos - 1 },
+                    shapes: state.undo.stack[state.undo.pos - 1]
+                }; 
+            }
+            break;
+        case actions.DRAWING_REDO:
+            if (state.undo.pos < state.undo.stack.length -1) {
+                return {
+                    ...state,
+                    undo: { ...state.undo, pos: state.undo.pos + 1 }, 
+                    shapes: state.undo.stack[state.undo.pos + 1]
+                };
+            } 
+            break;
         default:
             break;
     }
@@ -525,7 +560,13 @@ const mapReducers = [
 export const mainReducer = (state, action) => {
     for (const mi of mapReducers) {
         if (action.type.indexOf(mi.prefix) === 0) {
-            return mi.reducer(state, action);
+            let newState = mi.reducer(state, action);
+
+            if (state !== newState && undoables.indexOf(action.type) >= 0) {
+                newState = St.appendToUndo(newState);
+            }
+
+            return newState;
         }
     }
 

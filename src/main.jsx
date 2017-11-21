@@ -35,8 +35,11 @@ const state = {
     ...defaultState,
     containerSize: St.getDrawingContainerSize(true),
     persistId: drawing.persistId,
+    undo: drawing.undo,
     shapes: drawing.shapes,
 };
+
+console.log(state);
 
 const store = Redux.createStore(mainReducer, state, middleware);
 

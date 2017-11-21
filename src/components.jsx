@@ -157,14 +157,6 @@ SvgContainer = ReactRedux.connect(
 
 
 //----------------------------------------------------------------------------------------------------
-const displayContents = {
-    segmentDetails : {
-        [modes.PATH_SELECT_SEGMENT] : '',
-        [modes.PATH_EDIT_POINT] : '',
-        [modes.PATH_ADD_SEGMENT] : '',
-    }
-};
-
 const addKeyMapDOM = (map, array, keyPrefix) => {
     if (map) {
         array.push.apply(array, Object.keys(map).map((k, i) => {
@@ -201,7 +193,7 @@ const shapeInfoMarkup = shape => {
 
     return (
         <div>
-            <h2>{'Selected: ' + shape.type}</h2>
+            <h3>{'Selected: ' + shape.type}</h3>
             <div className='margin-top'>
                 {seg}
             </div>
@@ -214,24 +206,26 @@ const keyboardMappingMarkup = (keyMapping, mode) => {
     addKeyMapDOM(keyMapping[mode], keyMap, 'm');
     return (
         <div>
-            <h2>Keyboard Mapping</h2>
+            <h3>Keyboard Mapping</h3>
             <table className='keyboard-mapping'><tbody>
                 {keyMap}
             </tbody></table>
         </div>); 
 };
 
-let Display = ({name, persistId, mode, shape, keyMapping, display, containerSize}) => {
+let Display = ({name, persistId, mode, undo, shape, keyMapping, display, containerSize}) => {
     if (!display.infoPaneVisible) { return null; }
     
     const shapeInfo = (display.selectedShapeVisible && shape) ? shapeInfoMarkup(shape) : null;
     const keymap = display.keyboardMappingVisible ? keyboardMappingMarkup(keyMapping, mode) : null;
 
+    const undoCt = undo.pos;
+    const redoCt = undo.stack.length - undo.pos - 1;
     const style = { height: containerSize[1]};
     return (
         <div className='display' style={style}>
-            <h2 className='filename'>{name + " (" + persistId + ")"}</h2>
-            <h2>{'mode: ' + mode}</h2>
+            <h3 className='filename'>{name + " (" + persistId + ")"}</h3>
+            <h3>{`mode: ${mode}, undo/redo: [${undoCt}/${redoCt}]`}</h3>
             {shapeInfo}
             {keymap}
         </div>
@@ -243,6 +237,7 @@ Display = ReactRedux.connect(
         name: state.shapes.name, 
         persistId: state.persistId, 
         mode: St.curMode(state), 
+        undo: state.undo,
         shape: St.curShape(state), 
         keyMapping: state.keyMapping, 
         display: state.display, 
