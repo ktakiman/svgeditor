@@ -11,6 +11,8 @@ This is a simple SVG editor web app built with React and Redux. It offers a bett
 - multiple undo/redo
 - data are persisted to browser's local storage
 
+## Demo page is [here](https://ktakiman.github.io/svgeditordemo/)
+
 ## Galleries
 
 ![screenshot 1](screenshots/batmanlogo1.png?raw=true "Screenshot 1")
